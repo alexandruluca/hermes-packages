@@ -25,7 +25,7 @@ function validateConfig(config) {
     ajv.addMetaSchema(metaSchema);
 
     logger.info('Validating config');
-    var valid = ajv.validate(require('./schema.json.js'), config);
+    var valid = ajv.validate(require('./schema.json'), config);
     if (!valid) {
         throw new Error('config failed validation:' + JSON.stringify(ajv.errors));
     }
