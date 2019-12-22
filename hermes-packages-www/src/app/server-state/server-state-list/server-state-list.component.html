@@ -1,0 +1,41 @@
+<p-toast [style]="{marginTop: '80px'}"></p-toast>
+
+<p-table #dt [columns]="cols" [value]="serverDeploymentList" dataKey="serverTag">
+    <ng-template pTemplate="caption">
+
+    </ng-template>
+    <ng-template pTemplate="header" let-columns>
+      <tr>
+        <th *ngFor="let col of columns">
+          {{col.header}}
+        </th>
+      </tr>
+      <tr>
+        <th *ngFor="let col of columns" [ngSwitch]="col.field">
+          <p-dropdown *ngSwitchCase="'serverTag'" [options]="serverTags" [style]="{'width':'100%'}"
+            (onChange)="dt.filter($event.value, col.field, 'equals')"></p-dropdown>
+        </th>
+      </tr>
+    </ng-template>
+
+
+    <ng-template pTemplate="body" let-rowData let-ri="rowIndex" let-editing="editing">
+      <tr [pEditableRow]="rowData">
+        <td  *ngFor="let col of cols;">
+           <div *ngIf="col.field !== 'status'">
+              {{col.renderer ? col.renderer(rowData) : rowData[col.field]}}
+           </div>
+           <div *ngIf="col.field === 'status'">
+             <div *ngIf="rowData.version === rowData.lastVersion">
+               Up to date
+              <label class="pi pi-check"></label>
+            </div>
+            <div *ngIf="!rowData.lastVersion">
+                No deployment found
+                <label class="pi pi-times"></label>
+            </div>
+           </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>

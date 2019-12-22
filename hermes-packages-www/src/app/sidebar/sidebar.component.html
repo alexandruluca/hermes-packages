@@ -1,0 +1,77 @@
+<div class="grid" *ngIf="userService.isUserLoggedIn()">
+    <header class="header">
+      <i class="fas fa-bars header__menu"></i>
+      <div class="header__search">
+      </div>
+     <!--  <div class="header__avatar">
+        <div class="dropdown">
+          <ul class="dropdown__list">
+            <li class="dropdown__list-item">
+              <span class="dropdown__icon"><i class="far fa-user"></i></span>
+              <span class="dropdown__title">my profile</span>
+            </li>
+            <li class="dropdown__list-item">
+              <span class="dropdown__icon"><i class="fas fa-clipboard-list"></i></span>
+              <span class="dropdown__title">my account</span>
+            </li>
+            <li class="dropdown__list-item">
+              <span class="dropdown__icon"><i class="fas fa-sign-out-alt"></i></span>
+              <span class="dropdown__title">log out</span>
+            </li>
+          </ul>
+        </div>
+      </div> -->
+    </header>
+
+    <aside class="sidenav">
+      <div class="sidenav__brand">
+        <i class="fas fa-feather-alt sidenav__brand-icon"></i>
+        <a class="sidenav__brand-link" href="#"><span class="text-light"></span></a>
+        <i class="fas fa-times sidenav__brand-close"></i>
+      </div>
+      <div class="sidenav__profile">
+        <div class="sidenav__profile-avatar" [ngStyle]="{'background-image': 'url(' + userProfile.imageUrl + ')'}"></div>
+        <div class="sidenav__profile-title text-light">{{ userProfile.firstName}} {{ userProfile.lastName }}</div>
+      </div>
+      <div class="row row--align-v-center row--align-h-center">
+        <ul class="navList">
+          <li class="navList__heading">deployments<i class="far fa-file-alt"></i></li>
+            <li>
+            <div class="navList__subheading row row--align-v-center">
+              <span class="navList__subheading-icon"><i class="fas fa-briefcase-medical"></i></span>
+              <span class="navList__subheading-title" (click)="doRoute('overview')">overview</span>
+            </div>
+          </li>
+          <li>
+            <div class="navList__subheading row row--align-v-center"
+                 routerLink="servers" [routerLinkActive]="['active']"
+            >
+              <span class="navList__subheading-icon"><i class="fas fa-plane-departure"></i></span>
+              <span class="navList__subheading-title" >server state</span>
+            </div>
+          </li>
+          <li>
+            <div class="navList__subheading row row--align-v-center"
+                 routerLink="deployments/pull-request" [routerLinkActive]="['active']">
+              <span class="navList__subheading-icon"><i class="far fa-angry"></i></span>
+              <span class="navList__subheading-title active">pull requests</span>
+            </div>
+          </li>
+          <li>
+              <div class="navList__subheading row row--align-v-center"
+                   routerLink="deployments/release-candidate" [routerLinkActive]="['active']">
+                <span class="navList__subheading-icon"><i class="far fa-angry"></i></span>
+                <span class="navList__subheading-title">release candidates</span>
+              </div>
+            </li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main">
+        <ng-content></ng-content>
+    </main>
+
+    <footer class="footer">
+    </footer>
+  </div>

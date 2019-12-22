@@ -1,0 +1,43 @@
+<p-toast [style]="{marginTop: '80px'}"></p-toast>
+
+<p-table #dt [columns]="cols" [value]="serverDeploymentList" dataKey="serverTag">
+  <ng-template pTemplate="caption">
+
+  </ng-template>
+  <ng-template pTemplate="header" let-columns>
+    <tr>
+      <th *ngFor="let col of columns">
+        {{col.header}}
+      </th>
+      <th style="width: 7em"></th>
+    </tr>
+    <tr>
+      <th *ngFor="let col of columns" [ngSwitch]="col.field">
+        <p-dropdown *ngSwitchCase="'serverTag'" [options]="serverTags" [style]="{'width':'100%'}"
+          (onChange)="dt.filter($event.value, col.field, 'equals')"></p-dropdown>
+      </th>
+      <th></th>
+    </tr>
+  </ng-template>
+
+
+  <ng-template pTemplate="body" let-rowData let-ri="rowIndex" let-editing="editing">
+    <tr [pEditableRow]="rowData">
+      <td *ngFor="let col of cols;">
+        <div>
+          {{col.renderer ? col.renderer(rowData) : rowData[col.field]}}
+        </div>
+      </td>
+      <td>
+        <div *ngIf="rowData.pullRequestMeta">
+            <button *ngIf="!rowData.updateMeta.isUpdating" type="button" class="pi pi-refresh" pTooltip="Reset to release"
+            (click)="resetDeploymentToRelease(rowData)">
+            </button>
+            <div *ngIf="rowData.updateMeta.isUpdating" pTooltip="Updating to version {{getUpdateVersion(rowData.updateMeta)}}">
+                <i class="pi pi-spin pi-spinner"></i>
+            </div>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
