@@ -356,7 +356,7 @@ const App = module.exports = {
 		}
 	},
 
-	getDeploymentDownloadUrl: function (req, res, next) {
+	downloadDeployment: async function (req, res, next) {
 		let deploymentName = req.swagger.params.deploymentName.value;
 		let deploymentId = req.swagger.params.deploymentId.value;
 		let version = req.swagger.params.version.value;
@@ -379,9 +379,14 @@ const App = module.exports = {
 			query.isProduction = true;
 		}
 
+		console.log('download here 1');
+
 		let sortFn = getSemverCmpFunction('version', {asc: false});
+		console.log(query);
 
 		let existingDeployment = deploymentColl.find(query, {sort: sortFn, limit: 1})[0];
+
+		console.log('download here 3');
 
 		if (!existingDeployment) {
 			var deploymentInfo = deploymentName;
@@ -397,6 +402,7 @@ const App = module.exports = {
 				statusCode: StatusCode.NOT_FOUND,
 				code: ErrorCode.DEPLOYMENT_NOT_FOUND
 			});
+			console.log('download here 4 not found');
 			return res.sendData(err);
 		}
 
@@ -407,16 +413,17 @@ const App = module.exports = {
 			band = existingDeployment.band;
 		}
 
-		deploymentService.getDownloadUrl(existingDeployment).then(({url, fileName}) => {
-			res.sendData({
-				fileName,
-				downloadUrl: url,
-				version: version,
-				band: band
-			});
-		}).catch(err => {
+		let tagName = deploymentService.getTagNameByDeployment(existingDeployment);
+
+		try {
+			let downloadStream = await storageProvider.downloadDeploymentByTag(existingDeployment.name, tagName);
+
+			// stupid error from swagger / superagent so that we can get the data as a buffer
+			req.res.setHeader('Content-type', 'image/jpg');
+			res.end(downloadStream);
+		} catch (err) {
 			res.sendData(err);
-		});
+		}
 	},
 
 	getDeployment: function (req, res, next) {
@@ -455,6 +462,20 @@ const App = module.exports = {
 		}
 
 		res.sendData(doc);
+	},
+
+	getDeploymentName: function (req, res, next) {
+		try {
+			let deployment = {
+				name: req.swagger.params.deploymentName.value,
+				version: req.swagger.params.version.value,
+				band: req.swagger.params.band.value
+			};
+
+			res.sendData(deploymentService.getDeploymentName(deployment));
+		} catch (err) {
+			res.sendData(err);
+		}
 	},
 
 	getDeploymentByIssueNumber: function(req, res, next) {

@@ -4,7 +4,7 @@ const Octokit = require('@octokit/rest')
 const octokit = new Octokit({
 	auth: accessToken
 })
-
+const request = require('request');
 const logger = require('../logger');
 const {requiredParam: rp} = require('../utils');
 
@@ -221,6 +221,7 @@ class GithubApi {
 			let a = await this.getIssue({repo, issueNumber});
 			return true;
 		} catch(err) {
+			console.log(err);
 			return false;
 		}
 	}
@@ -261,6 +262,37 @@ class GithubApi {
 			repo
 		});
 		return data;
+	}
+
+	async downloadDeployment({repo, tagName}) {
+		let releases = await this.getReleases(repo);
+		let release = releases.find(r => r.tag_name === tagName);
+
+		if (!release) {
+			throw new Error('Not found');
+		}
+		let assetId = release.assets[0].id;
+
+		let url = `https://${accessToken}:@api.github.com/repos/${owner}/${repo}/releases/assets/${assetId}`;
+
+		return new Promise((resolve, reject) => {
+			return request({
+				url,
+				headers: {
+					'Accept': 'application/octet-stream',
+					'User-Agent': 'request module'
+				},
+				encoding: null
+			}, function callback(error, response, body) {
+				if (error) {
+					console.error(error);
+				}
+				if (!error && response.statusCode == 200) {
+				}
+
+				resolve(body);
+			});
+		});
 	}
 
 	deleteRelease({repo, releaseId}) {

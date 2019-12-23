@@ -5,7 +5,6 @@
 		"title": "Packages"
 	},
 	"basePath": "/api",
-	"produces": ["application/json"],
 	"securityDefinitions": {
 		"basicAuth": {
 			"type": "basic"
@@ -543,7 +542,10 @@
 				],
 				"description": "Get a deployment download url",
 				"x-swagger-router-controller": "DeploymentController",
-				"operationId": "getDeploymentDownloadUrl",
+				"operationId": "downloadDeployment",
+				"produces": [
+					"application/pdf"
+				],
 				"parameters": [
 					{
 						"name": "deploymentName",
@@ -794,6 +796,53 @@
 						"description": "Deploy version",
 						"required": true,
 						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployment/{deploymentName}/meta/{band}/{version}/name": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get deployment name by deployment",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeploymentName",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "version",
+						"in": "path",
+						"description": "Deploy version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "path",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"production",
+							"qa"
+						]
 					}
 				],
 				"responses": {

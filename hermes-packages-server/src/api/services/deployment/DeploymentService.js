@@ -485,6 +485,20 @@ class DeploymentService {
 		return deploymentName;
 	}
 
+	/**
+	 * @param {Deployment} deployment
+	 */
+	getTagNameByDeployment(deployment) {
+		let gitTag = normalizeVersion(deployment.version, deployment.band);
+
+		if (deployment.pullRequestMeta) {
+			let prMeta = deployment.pullRequestMeta
+			gitTag += `-prid-${prMeta.pullId}-${prMeta.issueNumber}`;
+		}
+
+		return gitTag
+	}
+
 	getHotfixVersion(deploymentVersion, serverTag, band) {
 		let query = {
 			band,
