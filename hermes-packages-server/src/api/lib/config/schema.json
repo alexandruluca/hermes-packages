@@ -49,9 +49,18 @@
 				},
 				"owner": {
 					"type": "string"
+				},
+				"clientId": {
+					"type": "string"
+				},
+				"clientSecret": {
+					"type": "string"
+				},
+				"callback": {
+					"type": "string"
 				}
 			},
-			"required": ["accessToken", "owner"]
+			"required": ["accessToken", "owner", "clientId", "callback"]
 		},
 		"jiraApi": {
 			"type": "object",

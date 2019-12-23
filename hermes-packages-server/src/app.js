@@ -15,7 +15,7 @@ const viewsDir = path.join(__dirname, 'views');
 const logger = require('./api/lib/logger');
 const request = require('request-promise');
 const session = require("express-session");
-
+const {clientId, clientSecret, callback} = config.githubApi;
 const isDevelopment = process.env.NODE_ENV === 'DEVELOPMENT';
 
 app.engine('hbs', hbs({extname: 'hbs'}));
@@ -39,9 +39,9 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 
 	app.use(cookieParser());
 
-	if (isDevelopment) {
+	//if (isDevelopment) {
 		app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
-	}
+	//}
 
 	app.get('/api', (req, res, next) => {
 
@@ -92,17 +92,18 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	});
 
 	app.get('/api/authorize', async(req, res, next) => {
-		console.log('auth');
+		console.log('auth')
 		const AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
-		const REDIRECT_URI = "https://172.16.0.30/api/callback";
+		const REDIRECT_URI = callback;
 		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
-		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=d078dfb8b4eb0175d59f&redirect_uri=${ENCODED_REDIRECT_URI}`;
+		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=${clientId}&redirect_uri=${ENCODED_REDIRECT_URI}`;
 
 		console.log(redirectUrl);
 		res.redirect(redirectUrl);
 	});
 
 	app.get('/api/callback', async(req, res, next) => {
+		console.log('cb');
 		const {code} = req.query;
 
 		try {
@@ -111,14 +112,14 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 					uri: 'https://github.com/login/oauth/access_token',
 					method: "POST",
 					form: {
-						client_id: 'd078dfb8b4eb0175d59f',
-						client_secret: 'f5da3cebb6532d2e7f562acaa2df8b080b228216',
+						client_id: clientId,
+						client_secret: clientSecret,
 						code: code,
-						redirect_uri: 'https://172.16.0.30/api/callback'
+						redirect_uri: callback
 					}
 				}
 			);
-			console.log(body);
+
 			const access_token = body.split("&")[0].split("=")[1];
 			let data = getData(req, res, access_token);
 		} catch (err) {
