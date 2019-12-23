@@ -93,7 +93,7 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	app.get('/api/authorize', async(req, res, next) => {
 		console.log('authorize')
 		const AUTHORIZE_URL = "https://github.com/login/oauth/api/authorize";
-		const REDIRECT_URI = "http://localhost:8090/api/callback";
+		const REDIRECT_URI = "https://172.16.0.30/api/callback";
 		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
 		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=d078dfb8b4eb0175d59f&redirect_uri=${ENCODED_REDIRECT_URI}`;
 
@@ -113,7 +113,7 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 						client_id: 'd078dfb8b4eb0175d59f',
 						client_secret: 'f5da3cebb6532d2e7f562acaa2df8b080b228216',
 						code: code,
-						redirect_uri: 'http://localhost:8090/api/callback'
+						redirect_uri: 'https://172.16.0.30/api/callback'
 					}
 				}
 			);
