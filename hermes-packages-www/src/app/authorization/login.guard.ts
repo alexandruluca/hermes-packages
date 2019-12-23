@@ -18,11 +18,12 @@ export class LoginGuard implements CanActivate {
   async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
     let session = await this.userService.getUserSession();
 
-    if (!session.user) {
+    return false;
+   /*  if (!session.user) {
       window.location.href = `${this.config.locationOrigin}/authorize`;
       return false;
     }
 
-    return true;
+    return true; */
   }
 }
