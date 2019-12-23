@@ -31,7 +31,6 @@ module.exports = {
 	} */
 
 	getSession: (req, res, next) => {
-		console.log('get session');
 		res.sendData({user: req.session.currentUser || null});
 	}
 };
