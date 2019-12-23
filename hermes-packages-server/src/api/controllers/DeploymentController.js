@@ -94,7 +94,7 @@ const App = module.exports = {
 
 			debug('end get deployment page');
 
-			let jiraIds = deployments.reduce((ids, deployment) => {
+			/* let jiraIds = deployments.reduce((ids, deployment) => {
 				if (deployment.pullRequestMeta) {
 					let issueNumber = deployment.pullRequestMeta.issueNumber;
 
@@ -106,10 +106,10 @@ const App = module.exports = {
 					ids.push(issueNumber);
 				}
 				return ids;
-			}, []);
+			}, []); */
 
 			debug('start get jira status');
-			let jiraTasks = await jiraApi.getIssueMap(jiraIds);
+			// let jiraTasks = await jiraApi.getIssueMap(jiraIds);
 			debug('end get jira status');
 
 			let promises = deployments.map(async (deployment) => {
@@ -120,13 +120,13 @@ const App = module.exports = {
 					return;
 				}
 
-				let jiraTaskId = deployment.pullRequestMeta.issueNumber;
+				/* let jiraTaskId = deployment.pullRequestMeta.issueNumber;
 				let jiraTask = jiraTasks[jiraTaskId];
 
 				if (jiraTask) {
 					deployment.jiraStatus = jiraTask.status;
 					deployment.transitionList = jiraTask.transitionList;
-				}
+				} */
 
 				if (config.disablePullRequestReview) {
 					return;

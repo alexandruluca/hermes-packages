@@ -10,17 +10,19 @@ export class Config {
   private http: HttpClient;
   public locationOrigin: string;
   public apiUrl: string;
-  public googleApiClientId: string;
+  public apiDocsUrl: string;
+  public githubApiClientId: string;
 
   constructor(http: HttpClient) {
     this.http = http;
     this.locationOrigin = location.origin.includes('localhost') ? 'http://localhost:8090' : location.origin;
-    this.apiUrl = `${this.locationOrigin}/api/api-docs`;
+    this.apiUrl = `${this.locationOrigin}/api`;
+    this.apiDocsUrl = `${this.apiUrl}/api-docs`;
   }
 
   async initialize() {
-    this.http.get(`${this.locationOrigin}/api/config`).toPromise().then(({googleApiClientId}: any) => {
-      this.googleApiClientId = googleApiClientId;
+    this.http.get(`${this.locationOrigin}/api/config`).toPromise().then(({githubApiClientId}: any) => {
+      this.githubApiClientId = githubApiClientId;
     });
   }
 }

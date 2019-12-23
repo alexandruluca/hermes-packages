@@ -3,6 +3,8 @@ import Swagger from 'swagger-client/browser';
 import {LoadingMaskService} from './loading-mask.service';
 import {Config} from './config.service';
 
+Swagger.http.withCredentials = true;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -47,14 +49,14 @@ export class Api {
     await this.config.initialize();
 
 
-    let spec = await fetch(this.config.apiUrl).then(r => r.json());
+    let spec = await fetch(this.config.apiDocsUrl).then(r => r.json());
 
     spec.schemes = [
       location.protocol.startsWith('https') ? 'https' : 'http'
     ];
 
     this.clientInstance = await Swagger({
-      url: this.config.apiUrl,
+      url: this.config.apiDocsUrl,
       spec,
       requestInterceptor: (req) => {
         req.headers['content-type'] = 'application/json';
@@ -107,5 +109,9 @@ class UserApi {
         accessToken
       }
     });
+  }
+
+  getSession() {
+    return this.clientInstance.apis.user.getSession();
   }
 }

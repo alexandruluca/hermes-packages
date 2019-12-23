@@ -35,11 +35,11 @@
 		"webClientConfig": {
 			"type": "object",
 			"properties": {
-				"googleApiClientId": {
+				"githubApiClientId": {
 					"type": "string"
 				}
 			},
-			"required": ["googleApiClientId"]
+			"required": ["githubApiClientId"]
 		},
 		"githubApi": {
 			"type": "object",

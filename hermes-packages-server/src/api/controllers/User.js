@@ -30,4 +30,7 @@ module.exports = {
 
 	} */
 
+	getSession: (req, res, next) => {
+		res.sendData({user: req.session.currentUser || null});
+	}
 };

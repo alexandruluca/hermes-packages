@@ -6,7 +6,6 @@ import {AppComponent} from './app.component';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {AuthenticationModule} from './authorization/authentication.module';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {LoginComponent} from './authorization/login/login.component';
 import {Api} from './common/api.service';
 import {DeploymentModule} from './deployment/deployment.module';
 import {DeploymentListComponent} from './deployment/deployment-list/deployment-list.component';
@@ -31,13 +30,12 @@ export function HttpLoaderFactory(httpClient: HttpClient) {
 }
 
 const appRoutes: Routes = [
-  { path: 'login', component: LoginComponent, data: {redirectOnLogin: 'deployments/pull-request'} },
   { path: 'deployments/pull-request', component: DeploymentListPullRequestComponent, canActivate: [LoginGuard] },
   { path: 'deployments/release-candidate', component: DeploymentListReleaseCandidateComponent, canActivate: [LoginGuard] },
   { path: 'deployments/:deploymentType', component: DeploymentListComponent, canActivate: [LoginGuard] },
   { path: 'servers', component: ServerStateListComponent, canActivate: [LoginGuard] },
   { path: 'overview', component: OverviewComponent, canActivate: [LoginGuard] },
-  { path: '**', redirectTo: '/login' }
+  { path: '**', redirectTo: '/deployments/pull-request', canActivate: [LoginGuard] }
 ];
 
 @NgModule({

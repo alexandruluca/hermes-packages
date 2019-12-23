@@ -26,22 +26,14 @@ module.exports = {
 			callback(new Error('bad credentials'));
 		}
 	},
-	'access-token': async function (req, authOrSecDef, scopesOrApiKey, callback) {
+	'user-session': async function (req, authOrSecDef, scopesOrApiKey, callback) {
 		try {
-			const accessToken = req.cookies['access-token'] || req.headers['access-token'];
+			let user = req.session.currentUser;
+			console.log(req.session);
 
-			if (!accessToken) {
-				throw new ServiceError({
-					message: 'missing access-token',
-					code: 'missing-access-token',
-					statusCode: StatusCode.UNAUTHORIZED
-				});
+			if (!user) {
+				throw new Error('Not authenticated.');
 			}
-			let user = await userService.getProfileInformation(accessToken);
-
-			req.session = {
-				user
-			};
 
 			callback(false);
 		} catch (err) {

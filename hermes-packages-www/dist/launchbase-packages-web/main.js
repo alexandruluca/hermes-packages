@@ -390,7 +390,7 @@ var UserService = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             return gapi.load('auth2', function () {
                 gapi.auth2.init({
-                    client_id: _this.config.googleApiClientId,
+                    client_id: _this.config.githubApiClientId,
                     cookiepolicy: 'single_host_origin',
                     scope: 'profile email',
                     access_type: 'offline',
@@ -786,8 +786,8 @@ var Config = /** @class */ (function () {
             var _this = this;
             return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
                 this.http.get(this.locationOrigin + "/api/config").toPromise().then(function (_a) {
-                    var googleApiClientId = _a.googleApiClientId;
-                    _this.googleApiClientId = googleApiClientId;
+                    var githubApiClientId = _a.githubApiClientId;
+                    _this.githubApiClientId = githubApiClientId;
                 });
                 return [2 /*return*/];
             });

@@ -5,6 +5,7 @@
 			"script": "./src/index.js",
 			"watch": ["src"],
 			"env": {
+				"NODE_ENV": "DEVELOPMENT",
 				"DEBUG_COLORS": "true"
 			},
 			"env-debug": {

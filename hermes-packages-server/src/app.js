@@ -13,10 +13,21 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser')
 const viewsDir = path.join(__dirname, 'views');
 const logger = require('./api/lib/logger');
+const request = require('request-promise');
+const session = require("express-session");
+
+const isDevelopment = process.env.NODE_ENV === 'DEVELOPMENT';
 
 app.engine('hbs', hbs({extname: 'hbs'}));
 app.set('views', viewsDir);
 app.set('view engine', 'hbs');
+app.use(
+	session({
+		secret: "helloworld",
+		resave: true,
+		saveUninitialized: false
+	})
+);
 
 const port = config.port;
 
@@ -28,9 +39,9 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 
 	app.use(cookieParser());
 
-	app.use(cors({
-		exposedHeaders: 'access-token'
-	}));
+	if (isDevelopment) {
+		app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
+	}
 
 	app.get('/api', (req, res, next) => {
 
@@ -76,7 +87,41 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	});
 
 	app.get('/api/config', (req, res, next) => {
+		config.webClientConfig.apiUrl = 'test';
 		res.end(JSON.stringify(config.webClientConfig));
+	});
+
+	app.get('/authorize', async(req, res, next) => {
+		const AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
+		const REDIRECT_URI = "http://localhost:8090/callback";
+		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
+		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=d078dfb8b4eb0175d59f&redirect_uri=${ENCODED_REDIRECT_URI}`;
+
+		res.redirect(redirectUrl);
+	});
+
+	app.get('/callback', async(req, res, next) => {
+		const {code} = req.query;
+
+		try {
+			let body = await request(
+				{
+					uri: 'https://github.com/login/oauth/access_token',
+					method: "POST",
+					form: {
+						client_id: 'd078dfb8b4eb0175d59f',
+						client_secret: 'f5da3cebb6532d2e7f562acaa2df8b080b228216',
+						code: code,
+						redirect_uri: 'http://localhost:8090/callback'
+					}
+				}
+			);
+			const access_token = body.split("&")[0].split("=")[1];
+			let data = getData(req, res, access_token);
+		} catch (err) {
+			res.status(500).json({message: err.message});
+		}
+
 	});
 
 	/**
@@ -122,3 +167,25 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 
 	io.initialize(server);
 });
+
+const getData = async (req, res, access_token) => {
+	const API_URL = "https://api.github.com/user";
+
+	let body = await request(
+		{
+			uri: `${API_URL}?access_token=${access_token}`,
+			method: "GET",
+			headers: {
+				"User-Agent": "test"
+			}
+		}
+	);
+
+	req.session.currentUser = JSON.parse(body);
+
+	if (isDevelopment) {
+		res.redirect('http://localhost:4200');
+	} else {
+		res.redirect('/');
+	}
+};

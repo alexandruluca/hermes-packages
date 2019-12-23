@@ -4,6 +4,8 @@ import {LocalStorageService} from '../local-storage.service';
 import {Router} from '@angular/router';
 import {Config} from '../common/config.service';
 import {UserProfile} from '../common/models/domain/UserProfile';
+import {HttpClient} from '@angular/common/http';
+import {resolve} from 'url';
 
 const Keys = {
   USER_LOGGED_IN_KEY: 'isUserLoggedIn',
@@ -23,13 +25,15 @@ export class UserService {
   private router: Router;
   private  zone: NgZone;
   private config: Config;
+  private http: HttpClient;
 
-  constructor(api: Api, config: Config, localStorageService: LocalStorageService, router: Router, zone: NgZone) {
+  constructor(api: Api, config: Config, localStorageService: LocalStorageService, router: Router, zone: NgZone, http: HttpClient) {
     this.api = api;
     this.config = config;
     this.localStorageService = localStorageService;
     this.zone = zone;
     this.router = router;
+    this.http = http;
     this.api.setRequestInterceptor(this.getRequestInterceptor());
     this.api.setResponseInterceptor(this.getResponseInterceptor());
   }
@@ -38,7 +42,7 @@ export class UserService {
     return new Promise((resolve, reject) => {
       return gapi.load('auth2', () => {
         gapi.auth2.init({
-          client_id: this.config.googleApiClientId,
+          client_id: this.config.githubApiClientId,
           cookiepolicy: 'single_host_origin',
           scope: 'profile email',
           access_type: 'offline',
@@ -139,11 +143,22 @@ export class UserService {
   } */
 
   isUserLoggedIn(): boolean {
+    return true;
     return this.localStorageService.getItem(Keys.USER_LOGGED_IN_KEY) as boolean;
   }
 
   private getAccessToken() {
     return this.localStorageService.getItem('accessToken');
+  }
+
+  async getUserSession(): Promise<{user?: object}> {
+    let session: {user?: object} = await this.api.userApi.getSession();
+
+    if (session.user) {
+      this.localStorageService.setItem(Keys.USER_PROFILE, session.user)
+    }
+
+    return session;
   }
 
   private getRequestInterceptor() {

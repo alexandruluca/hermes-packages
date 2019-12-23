@@ -1,4 +1,3 @@
-<app-login *ngIf="!userService.isUserLoggedIn()"></app-login>
 <app-sidebar *ngIf="userService.isUserLoggedIn()">
   <router-outlet></router-outlet>
 </app-sidebar>

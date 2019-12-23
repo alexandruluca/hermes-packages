@@ -3,26 +3,26 @@ import {ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router} from '@ang
 import {Observable} from 'rxjs';
 import {CanActivate} from '@angular/router/src/utils/preactivation';
 import {UserService} from './user.service';
+import {Config} from '../common/config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoginGuard implements CanActivate {
-  private userService: UserService;
-  private router: Router;
   public path: ActivatedRouteSnapshot[];
   public route: ActivatedRouteSnapshot;
 
-  constructor(userService: UserService, router: Router) {
-    this.userService = userService;
-    this.router = router;
+  constructor(private userService: UserService, private config: Config) {
   }
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-    if (!this.userService.isUserLoggedIn()) {
-      this.router.navigate(['login']);
+  async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean> {
+    let session = await this.userService.getUserSession();
+
+    if (!session.user) {
+      window.location.href = `${this.config.locationOrigin}/authorize`;
       return false;
     }
+
     return true;
   }
 }
