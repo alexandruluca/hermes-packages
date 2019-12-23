@@ -39,9 +39,9 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 
 	app.use(cookieParser());
 
-	if (isDevelopment) {
-		app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
-	}
+	//if (isDevelopment) {
+		app.use(cors({credentials: true, origin: 'https://172.16.0.30'}));
+	//}
 
 	app.get('/api', (req, res, next) => {
 
