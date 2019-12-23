@@ -39,9 +39,9 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 
 	app.use(cookieParser());
 
-	//if (isDevelopment) {
-		app.use(cors({credentials: true, origin: 'https://172.16.0.30'}));
-	//}
+	if (isDevelopment) {
+		app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
+	}
 
 	app.get('/api', (req, res, next) => {
 
@@ -87,23 +87,21 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	});
 
 	app.get('/api/config', (req, res, next) => {
+		config.webClientConfig.apiUrl = 'test';
 		res.end(JSON.stringify(config.webClientConfig));
 	});
 
 	app.get('/api/authorize', async(req, res, next) => {
-		console.log('authorize')
-		const AUTHORIZE_URL = "https://github.com/login/oauth/api/authorize";
-		const REDIRECT_URI = "https://172.16.0.30/api/callback";
+		const AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
+		const REDIRECT_URI = "http://localhost:8090/api/callback";
 		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
 		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=d078dfb8b4eb0175d59f&redirect_uri=${ENCODED_REDIRECT_URI}`;
 
-		console.log(redirectUrl);
 		res.redirect(redirectUrl);
 	});
 
 	app.get('/api/callback', async(req, res, next) => {
 		const {code} = req.query;
-		console.log('callback');
 
 		try {
 			let body = await request(
@@ -114,15 +112,14 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 						client_id: 'd078dfb8b4eb0175d59f',
 						client_secret: 'f5da3cebb6532d2e7f562acaa2df8b080b228216',
 						code: code,
-						redirect_uri: 'https://172.16.0.30/api/callback'
+						redirect_uri: 'http://localhost:8090/api/callback'
 					}
 				}
 			);
+			console.log(body);
 			const access_token = body.split("&")[0].split("=")[1];
 			let data = getData(req, res, access_token);
 		} catch (err) {
-			console.log('err', err);
-			logger.error(err);
 			res.status(500).json({message: err.message});
 		}
 
@@ -187,9 +184,11 @@ const getData = async (req, res, access_token) => {
 
 	req.session.currentUser = JSON.parse(body);
 
-	if (isDevelopment) {
+	res.redirect('http://localhost:8090/api/user/session')
+
+	/* if (isDevelopment) {
 		res.redirect('http://localhost:4200');
 	} else {
 		res.redirect('/');
-	}
+	} */
 };
