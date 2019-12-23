@@ -187,11 +187,9 @@ const getData = async (req, res, access_token) => {
 
 	req.session.currentUser = JSON.parse(body);
 
-	res.redirect('http://localhost:8090/api/user/session')
-
-	/* if (isDevelopment) {
+	if (isDevelopment) {
 		res.redirect('http://localhost:4200');
 	} else {
 		res.redirect('/');
-	} */
+	}
 };
