@@ -90,10 +90,10 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 		res.end(JSON.stringify(config.webClientConfig));
 	});
 
-	app.get('/authorize', async(req, res, next) => {
+	app.get('/api/authorize', async(req, res, next) => {
 		console.log('authorize')
-		const AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
-		const REDIRECT_URI = "http://localhost:8090/callback";
+		const AUTHORIZE_URL = "https://github.com/login/oauth/api/authorize";
+		const REDIRECT_URI = "http://localhost:8090/api/callback";
 		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
 		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=d078dfb8b4eb0175d59f&redirect_uri=${ENCODED_REDIRECT_URI}`;
 
@@ -101,7 +101,7 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 		res.redirect(redirectUrl);
 	});
 
-	app.get('/callback', async(req, res, next) => {
+	app.get('/api/callback', async(req, res, next) => {
 		const {code} = req.query;
 
 		try {
@@ -113,7 +113,7 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 						client_id: 'd078dfb8b4eb0175d59f',
 						client_secret: 'f5da3cebb6532d2e7f562acaa2df8b080b228216',
 						code: code,
-						redirect_uri: 'http://localhost:8090/callback'
+						redirect_uri: 'http://localhost:8090/api/callback'
 					}
 				}
 			);

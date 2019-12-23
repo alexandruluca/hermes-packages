@@ -20,7 +20,7 @@ export class LoginGuard implements CanActivate {
 
     return false;
    /*  if (!session.user) {
-      window.location.href = `${this.config.locationOrigin}/authorize`;
+      window.location.href = `${this.config.locationOrigin}/api/authorize`;
       return false;
     }
 
