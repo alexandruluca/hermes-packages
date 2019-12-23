@@ -103,6 +103,7 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 
 	app.get('/api/callback', async(req, res, next) => {
 		const {code} = req.query;
+		console.log('callback');
 
 		try {
 			let body = await request(
