@@ -115,9 +115,11 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 					}
 				}
 			);
+			console.log(body);
 			const access_token = body.split("&")[0].split("=")[1];
 			let data = getData(req, res, access_token);
 		} catch (err) {
+			console.log('err', err);
 			logger.error(err);
 			res.status(500).json({message: err.message});
 		}
