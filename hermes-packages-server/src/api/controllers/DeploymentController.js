@@ -382,14 +382,10 @@ const App = module.exports = {
 			query.isProduction = true;
 		}
 
-		console.log('download here 1');
-
 		let sortFn = getSemverCmpFunction('version', {asc: false});
 		console.log(query);
 
 		let existingDeployment = deploymentColl.find(query, {sort: sortFn, limit: 1})[0];
-
-		console.log('download here 3');
 
 		if (!existingDeployment) {
 			var deploymentInfo = deploymentName;
@@ -405,7 +401,6 @@ const App = module.exports = {
 				statusCode: StatusCode.NOT_FOUND,
 				code: ErrorCode.DEPLOYMENT_NOT_FOUND
 			});
-			console.log('download here 4 not found');
 			return res.sendData(err);
 		}
 
@@ -419,11 +414,13 @@ const App = module.exports = {
 		let tagName = deploymentService.getTagNameByDeployment(existingDeployment);
 
 		try {
-			let downloadStream = await storageProvider.downloadDeploymentByTag(existingDeployment.name, tagName);
+			let buffer = await storageProvider.downloadDeploymentByTag(existingDeployment.name, tagName);
+
+			logger.info('buffer length', buffer.length);
 
 			// stupid error from swagger / superagent so that we can get the data as a buffer
 			req.res.setHeader('Content-type', 'image/jpg');
-			res.end(downloadStream);
+			res.end(buffer);
 		} catch (err) {
 			res.sendData(err);
 		}
