@@ -187,7 +187,7 @@ const getData = async (req, res, access_token) => {
 		}
 	);
 
-	req.session.currentUser = JSON.parse(body);
+	req.session.user = JSON.parse(body);
 
 	if (isDevelopment) {
 		res.redirect('http://localhost:4200');

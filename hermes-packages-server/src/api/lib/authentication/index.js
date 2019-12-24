@@ -15,11 +15,9 @@ module.exports = {
 			password: authentication.pass
 		};
 		if (req.auth.user === config.user.username && req.auth.password === config.user.password) {
-			req.session = {
-				user: {
-					email: config.user.username
-				}
-			};
+			req.session.user = {
+				email: config.user.username
+			}
 
 			callback(false);
 		} else {
@@ -28,8 +26,7 @@ module.exports = {
 	},
 	'user-session': async function (req, authOrSecDef, scopesOrApiKey, callback) {
 		try {
-			let user = req.session.currentUser;
-			console.log(req.session);
+			let user = req.session.user;
 
 			if (!user) {
 				throw new Error('Not authenticated.');
