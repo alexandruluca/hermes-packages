@@ -1,6 +1,5 @@
 const {username, password, url, secret} = require('../config').jenkins;
 const request = require('request-promise');
-
 const CRUMB_URL = `${url}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)`;
 
 const auth = {
@@ -18,6 +17,7 @@ class JenkinsApi {
 			});
 			return true;
 		} catch (err) {
+			console.log(err);
 			return false;
 		}
 	}
