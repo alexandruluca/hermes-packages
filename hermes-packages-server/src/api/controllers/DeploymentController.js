@@ -128,6 +128,9 @@ const App = module.exports = {
 					deployment.transitionList = jiraTask.transitionList;
 				} */
 
+				deployment.jiraStatus = {id: 'To Do'};
+				deployment.transitionList = issueProvider.getTaskTransitionList();
+
 				if (config.disablePullRequestReview) {
 					return;
 				}

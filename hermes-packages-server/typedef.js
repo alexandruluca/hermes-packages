@@ -48,5 +48,3 @@
   * @typedef {Object} TaskStatusResult
   * @property {String} name
   */
-
-module.exports = {}

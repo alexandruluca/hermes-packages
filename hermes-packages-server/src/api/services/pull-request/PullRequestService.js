@@ -129,16 +129,19 @@ class PullRequestService {
 	async handleJiraStatusUpdate({deployment, jiraStatusId, userEmail}) {
 		let issueNumber = deployment.pullRequestMeta.issueNumber;
 
-		let statusToUpdate = await this.getJiraStatusToUpdate(issueNumber, jiraStatusId);
+		let statusToUpdate = await issueProvider.getTaskStatusToUpdate({
+			issueNumber,
+			statusId: jiraStatusId
+		});
 
 		if (statusToUpdate.name === JiraTaskStatus.DONE) {
 			await this.handleDoneTransition({deployment, userEmail});
 		}
 
-		this.updateJiraTaskStatus(issueNumber, statusToUpdate.name);
+		await this.updateJiraTaskStatus(deployment.name, issueNumber, statusToUpdate.name);
 	}
 
-	async updateJiraTaskStatus(issueNumber, statusName) {
+	async updateJiraTaskStatus(deploymentName, issueNumber, statusName) {
 		logger.info(`[${issueNumber}']: transitioning status to '${statusName}'`)
 		let eventData = {
 			issueNumber,
@@ -146,7 +149,11 @@ class PullRequestService {
 		};
 		this.broadcastMessage(EventType.JIRA_STATUS_UPDATE, {data: eventData});
 
-		await jiraApi.updateTaskStatus(issueNumber, statusName);
+		await issueProvider.updateTaskStatus({
+			issueNumber,
+			status: statusName,
+			projectName: deploymentName
+		});
 
 		this.broadcastMessage(EventType.JIRA_STATUS_UPDATE, {isCompleted: true});
 	}

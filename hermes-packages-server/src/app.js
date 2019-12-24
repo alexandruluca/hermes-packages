@@ -94,7 +94,6 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	});
 
 	app.get('/api/authorize', async(req, res, next) => {
-		console.log('auth')
 		const AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
 		const REDIRECT_URI = callback;
 		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
@@ -105,7 +104,6 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	});
 
 	app.get('/api/callback', async(req, res, next) => {
-		console.log('cb');
 		const {code} = req.query;
 
 		try {

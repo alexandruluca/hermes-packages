@@ -216,6 +216,15 @@ class GithubApi {
 		return res.data;
 	}
 
+	updateIssue({repo, issueNumber, state}) {
+		return octokit.issues.update({
+			owner,
+			repo,
+			state,
+			issue_number: issueNumber
+		})
+	}
+
 	async isValidIssue({repo, issueNumber}) {
 		try {
 			let a = await this.getIssue({repo, issueNumber});

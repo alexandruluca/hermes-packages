@@ -1,7 +1,8 @@
-const {jiraApi} = require('../lib/jira');
+const {jiraApi, JiraTaskStatus} = require('../lib/jira');
 const {githubApi} = require('../lib/github');
 const config = require('../lib/config');
 const {issueProvider, jiraLinkTemplate} = config;
+const {ServiceError, StatusCode} = require('../lib/error');
 require('../../../typedef');
 
 class IssueProvider {
@@ -23,11 +24,37 @@ class IssueProvider {
 		throw new Error('not implemented');
 	}
 
-	updateTaskStatus(projectName, issueNumber, status, fallbackStatus) {
+	/**
+	 * @param {object} opt
+	 * @param {string} opt.projectName
+	 * @param {string} opt.issueNumber
+	 * @param {string} opt.status
+	 * @param {string=} opt.fallbackStatus
+	 */
+	updateTaskStatus({projectName, issueNumber, status, fallbackStatus}) {
 		throw new Error('not implemented');
 	}
 
+	/**
+	 * @param {object} opt
+	 * @param {string} opt.issueNumber
+	 * @param {string} opt.statusId
+	 */
+	getTaskStatusToUpdate({issueNumber, statusId}) {
+		throw new Error('not implemented')
+	}
 
+	getTaskTransitionList() {
+		return [{
+			id: 'To Do',
+			name: 'To Do',
+			transitionId: 'To Do'
+		}, {
+			id: 'Done',
+			name: 'Done',
+			transitionId: 'Done'
+		}];
+	}
 }
 
 class GithubIssueProvider extends IssueProvider {
@@ -53,7 +80,32 @@ class GithubIssueProvider extends IssueProvider {
 		}
 	}
 
-	async updateTaskStatus(projectName, issueNumber, status, fallbackStatus) {
+	/**
+	 * @param {object} opt
+	 * @param {string} opt.projectName
+	 * @param {string} opt.issueNumber
+	 * @param {string} opt.status
+	 * @param {string=} opt.fallbackStatus
+	 */
+	async updateTaskStatus({projectName, issueNumber, status, fallbackStatus}) {
+		let updatableStatus = status === JiraTaskStatus.DONE ? 'closed' : 'open';
+
+		return githubApi.updateIssue({
+			repo: projectName,
+			issueNumber,
+			state: updatableStatus
+		});
+	}
+
+	/**
+	 * @param {object} opt
+	 * @param {string} opt.issueNumber
+	 * @param {string} opt.statusId
+	 */
+	getTaskStatusToUpdate({issueNumber, statusId}) {
+		return {
+			name: statusId
+		}
 	}
 }
 
@@ -76,8 +128,37 @@ class JiraIssueProvider extends IssueProvider {
 		return jiraApi.getTaskStatus(issueNumber);
 	}
 
-	updateTaskStatus(projectName, issueNumber, status, fallbackStatus) {
+	/**
+	 * @param {object} opt
+	 * @param {string} opt.projectName
+	 * @param {string} opt.issueNumber
+	 * @param {string} opt.status
+	 * @param {string=} opt.fallbackStatus
+	 */
+	updateTaskStatus({projectName, issueNumber, status, fallbackStatus}) {
 		return jiraApi.updateTaskStatus(issueNumber, status, fallbackStatus);
+	}
+
+	/**
+	 * @param {object} opt
+	 * @param {string} opt.issueNumber
+	 * @param {string} opt.statusId
+	 */
+	async getTaskStatusToUpdate({issueNumber, statusId}) {
+		let statusList = await jiraApi.getTaskStatusList(issueNumber);
+
+		let statusToUpdate = statusList.find(t => {
+			return t.id === statusId;
+		});
+
+		if (!statusToUpdate) {
+			throw new ServiceError({
+				message: `status '${statusId}' is not a valid status`,
+				statusCode: StatusCode.BAD_REQUEST
+			});
+		}
+
+		return statusToUpdate
 	}
 }
 
