@@ -435,7 +435,7 @@ class PullRequestService {
 		 * @type {VersionSequence}
 		 */
 		let baseSeedValues = {};
-		let manifest = await this.getFileContents({ref: sourceBranch, path: 'hermes-manifest.json'});
+		let manifest = await this.getFileContents({ref: sourceBranch, path: 'hermes.json'});
 		let packageJsonLocation = manifest.packageLocation || path.join(manifest.packageLocation, 'package.json');
 		let packageJson = await this.getFileContents({ref: sourceBranch, path: packageJsonLocation});
 		let basePackageJson = await this.getFileContents({ref: targetBranch, path: packageJsonLocation});
