@@ -1,5 +1,5 @@
 const {username, password, url, secret} = require('../config').jenkins;
-const request = require('request-promise');
+const request = require('request-promise').defaults({jar: true});
 const CRUMB_URL = `${url}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)`;
 
 const auth = {
