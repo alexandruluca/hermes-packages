@@ -95,8 +95,7 @@
 					"type": "string"
 				},
 				"url": {
-					"type": "string",
-					"format": "url"
+					"type": "string"
 				},
 				"secret": {
 					"type": "string"
