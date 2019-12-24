@@ -391,7 +391,7 @@ class BranchApi {
 
 		path = this.normalizePath(path);
 
-		return octokit.repos.updateFile({
+		return octokit.repos.createOrUpdateFile({
 			owner,
 			repo: this.repo,
 			path,
