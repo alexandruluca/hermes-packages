@@ -5,10 +5,9 @@ const configPath = path.join(dataDir, 'config.json');
 const config = shush(configPath);
 const logger = require('../logger');
 
-if(!config.hasOwnProperty('databaseDir')) {
-	config.databaseDir = process.env.dataDir;
-}
+config.databaseDir = process.env.dataDir || config.databaseDir;
 
+console.log(`Used database dir: ${config.databaseDir}`)
 
 validateConfig(config);
 
