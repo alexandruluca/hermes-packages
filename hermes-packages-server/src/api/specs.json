@@ -30,58 +30,89 @@
 				"tags": [
 					"deployments"
 				],
+				"consumes": [
+					"multipart/form-data"
+				],
 				"description": "Create deployment",
 				"x-swagger-router-controller": "DeploymentController",
 				"operationId": "createDeployment",
 				"parameters": [
 					{
-						"name": "deployment",
-						"in": "body",
-						"description": "deployment",
+						"name": "name",
+						"in": "formData",
+						"description": "Deployment name",
 						"required": true,
-						"schema": {
-							"type": "object",
-							"additionalProperties": false,
-							"properties": {
-								"name": {
-									"type": "string"
-								},
-								"band": {
-									"type": "string",
-									"enum": [
-										"develop",
-										"release",
-										"qa"
-									]
-								},
-								"version": {
-									"type": "string"
-								},
-								"isHotfix": {
-									"type": "boolean"
-								},
-								"serverTag": {
-									"type": "string"
-								},
-								"iosCfBundleId": {
-									"type": "string"
-								},
-								"androidVersionCode": {
-									"type": "string"
-								},
-								"deployAsAwsLambdaFunction": {
-									"type": "boolean"
-								},
-								"pullRequestMeta": {
-									"$ref": "#/definitions/PullRequestMeta"
-								}
-							},
-							"required": [
-								"name",
-								"band",
-								"version"
-							]
-						}
+						"type": "string"
+					},
+					{
+						"name": "deploymentFile",
+						"in": "formData",
+						"description": "Deployment file",
+						"required": true,
+						"type": "file"
+					},
+					{
+						"name": "band",
+						"in": "formData",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "version",
+						"in": "formData",
+						"description": "Deployment version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "serverTag",
+						"in": "formData",
+						"description": "Deployment server tag",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "pullRequestMeta",
+						"in": "formData",
+						"description": "Deployment pull request meta",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "isHotfix",
+						"in": "formData",
+						"description": "Deployment is hotfix",
+						"required": false,
+						"type": "string",
+						"enum": ["true", "false"]
+					},
+					{
+						"name": "iosCfBundleId",
+						"in": "formData",
+						"description": "Deployment iosCfBundleId",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "androidVersionCode",
+						"in": "formData",
+						"description": "Deployment androidVersionCode",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "deployAsAwsLambdaFunction",
+						"in": "formData",
+						"description": "Deployment deployAsAwsLambdaFunction",
+						"required": false,
+						"type": "string",
+						"enum": ["true", "false"]
 					},
 					{
 						"name": "overrideExistingDeployment",
@@ -161,38 +192,65 @@
 				}
 			}
 		},
-		"/deployments/release/upload": {
-			"put": {
+		"/deployments/release/tag": {
+			"get": {
 				"tags": [
 					"deployments"
 				],
-				"consumes": ["multipart/form-data"],
-				"description": "Upload",
+				"description": "Get tag name for deployment",
 				"parameters": [
 					{
-						"name": "projectName",
-						"in": "formData",
-						"description": "projectName",
-						"required": true,
-						"type": "string"
-					},
-					{
-						"name": "gitTag",
-						"in": "formData",
-						"description": "Git Tag",
-						"required": true,
-						"type": "string"
-					},
-					{
 						"name": "deployment",
-						"in": "formData",
-						"description": "Deployment file",
 						"required": true,
-						"type": "file"
+						"description": "Deployment",
+						"in": "body",
+						"schema": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"band": {
+									"type": "string",
+									"enum": [
+										"develop",
+										"release",
+										"qa"
+									]
+								},
+								"version": {
+									"type": "string"
+								},
+								"isHotfix": {
+									"type": "boolean"
+								},
+								"serverTag": {
+									"type": "string"
+								},
+								"iosCfBundleId": {
+									"type": "string"
+								},
+								"androidVersionCode": {
+									"type": "string"
+								},
+								"deployAsAwsLambdaFunction": {
+									"type": "boolean"
+								},
+								"pullRequestMeta": {
+									"$ref": "#/definitions/PullRequestMeta"
+								}
+							},
+							"required": [
+								"name",
+								"band",
+								"version"
+							]
+						}
 					}
 				],
 				"x-swagger-router-controller": "DeploymentController",
-				"operationId": "uploadDeploymentFile",
+				"operationId": "getDeploymentTagName",
 				"responses": {
 					"200": {
 						"description": "Successful response",

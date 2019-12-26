@@ -2,6 +2,7 @@ const awsApi = require('../lib/aws');
 const {githubApi} = require('../lib/github');
 const config = require('../lib/config');
 const {storageProvider} = config;
+const logger = require('../lib/logger');
 
 class StorageProvider {
 	uploadDeployment(projectName, tagName, file) {
@@ -15,6 +16,7 @@ class StorageProvider {
 
 class GithubStorageProvider extends StorageProvider {
 	async uploadDeployment(projectName, tagName, file) {
+		logger.info(`Uploading release asset: ${projectName, tagName}`);
 		let data = await githubApi.createRelease({repo: projectName, tagName, file});
 	}
 

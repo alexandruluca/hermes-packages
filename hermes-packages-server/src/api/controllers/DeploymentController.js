@@ -18,11 +18,28 @@ const ErrorCode = {
 
 const App = module.exports = {
 	createDeployment: async function (req, res, next) {
-		let deployment = req.swagger.params.deployment.value;
+		let deployment = {
+			name: req.swagger.params.name.value,
+			band: req.swagger.params.band.value,
+			version: req.swagger.params.version.value,
+			isHotfix: req.swagger.params.isHotfix.value === 'true',
+			serverTag: req.swagger.params.serverTag.value,
+			iosCfBundleId: req.swagger.params.iosCfBundleId.value,
+			androidVersionCode: req.swagger.params.androidVersionCode.value,
+			deployAsAwsLambdaFunction: req.swagger.params.deployAsAwsLambdaFunction.value === 'true',
+			pullRequestMeta: req.swagger.params.pullRequestMeta ? JSON.parse(req.swagger.params.pullRequestMeta.value) : undefined
+		};
+		for (let prop in deployment) {
+			if (deployment[prop] === undefined) {
+				delete deployment[prop];
+			}
+		}
+
 		let overrideExistingDeployment = req.swagger.params.overrideExistingDeployment.value;
 		let isHotfix = deployment.isHotfix;
 		let isPullRequest = !!deployment.pullRequestMeta;
 		let projectName = deployment.name;
+		let deploymentFile = req.swagger.params.deploymentFile.value.buffer
 
 		try {
 			let deploymentName = await deploymentService.createDeployment(deployment, {overrideExistingDeployment});
@@ -42,7 +59,12 @@ const App = module.exports = {
 				let issueNumber = deployment.pullRequestMeta.issueNumber;
 
 				try {
-					issueProvider.updateTaskStatus(deploymentName, issueNumber, JiraTaskStatus.IN_QA, JiraTaskStatus.IN_PROGRESS);
+					issueProvider.updateTaskStatus({
+						issueNumber,
+						projectName: deploymentName,
+						status: JiraTaskStatus.IN_QA,
+						fallbackStatus: JiraTaskStatus.IN_PROGRESS
+					});
 				} catch (err) {
 					logger.error(err);
 				}
@@ -61,22 +83,21 @@ const App = module.exports = {
 				}
 			}
 
+			await storageProvider.uploadDeployment(projectName, gitTag, deploymentFile);
+
 			res.sendData({deploymentName, gitTag, projectName});
 		} catch (err) {
 			res.sendData(err);
 		}
 	},
 
-	uploadDeploymentFile: async function(req, res, next) {
+	getDeploymentTagName: async function (req, res) {
 		try {
-			let projectName = req.swagger.params.projectName.value;
-			let gitTagName = req.swagger.params.gitTag.value;
-			let deploymentFile = req.swagger.params.deployment.value.buffer
+			let deployment = req.swagger.params.deployment.value;
+			let tagName = deploymentService.getTagNameByDeployment(deployment);
 
-			await storageProvider.uploadDeployment(projectName, gitTagName, deploymentFile);
-
-			res.sendData({});
-		} catch(err) {
+			res.sendData(tagName);
+		} catch (err) {
 			res.sendData(err);
 		}
 	},
