@@ -44,11 +44,6 @@ const App = module.exports = {
 		try {
 			let deploymentName = await deploymentService.createDeployment(deployment, {overrideExistingDeployment});
 
-			if (!isHotfix) {
-				//emit only if not a hotfix
-				deploymentService.broadCasNewDeploymentAvailable(deployment);
-			}
-
 			if (isPullRequest) {
 				if (deployment.band !== DeploymentBand.QA) {
 					throw new ServiceError({
@@ -61,7 +56,7 @@ const App = module.exports = {
 				try {
 					issueProvider.updateTaskStatus({
 						issueNumber,
-						projectName: deploymentName,
+						projectName,
 						status: JiraTaskStatus.IN_QA,
 						fallbackStatus: JiraTaskStatus.IN_PROGRESS
 					});
@@ -70,20 +65,14 @@ const App = module.exports = {
 				}
 			}
 
-			let gitTag;
-
-			if (isHotfix) {
-				gitTag = deploymentName.replace(new RegExp(`^${projectName.name}-`), "");
-			} else {
-				gitTag = normalizeVersion(deployment.version, deployment.band);
-
-				if (isPullRequest) {
-					let prMeta = deployment.pullRequestMeta
-					gitTag += `-prid-${prMeta.pullId}-${prMeta.issueNumber}`;
-				}
-			}
+			let gitTag = deploymentService.getTagNameByDeployment(deployment);
 
 			await storageProvider.uploadDeployment(projectName, gitTag, deploymentFile);
+
+			if (!isHotfix) {
+				//emit only if not a hotfix
+				deploymentService.broadCasNewDeploymentAvailable(deployment);
+			}
 
 			res.sendData({deploymentName, gitTag, projectName});
 		} catch (err) {

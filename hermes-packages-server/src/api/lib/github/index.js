@@ -217,6 +217,7 @@ class GithubApi {
 	}
 
 	updateIssue({repo, issueNumber, state}) {
+		logger.info(`Updating issue, ${repo}, ${issueNumber}, ${state}`);
 		return octokit.issues.update({
 			owner,
 			repo,
@@ -230,7 +231,6 @@ class GithubApi {
 			let a = await this.getIssue({repo, issueNumber});
 			return true;
 		} catch(err) {
-			console.log(err);
 			return false;
 		}
 	}
@@ -252,8 +252,6 @@ class GithubApi {
 		if(!file) {
 			return file;
 		}
-
-		console.log('data.upload_url', data.upload_url);
 
 		let res = await octokit.repos.uploadReleaseAsset({
 			file,
