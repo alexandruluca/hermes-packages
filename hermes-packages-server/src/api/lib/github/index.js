@@ -69,6 +69,17 @@ class GithubApi {
 		return pr.data.mergeable_state;
 	}
 
+	async isPullRequestMergeable({repo, pullId}) {
+
+		let pr = await octokit.pulls.get({
+			owner,
+			repo,
+			pull_number: pullId
+		});
+
+		return pr.data.mergeable === true;
+	}
+
 	async isMergingBlocked({repo, pullId}) {
 		try {
 			let state = await this.getPullRequestState({repo, pullId});

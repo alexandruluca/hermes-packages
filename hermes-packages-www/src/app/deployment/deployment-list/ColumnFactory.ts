@@ -45,6 +45,9 @@ export class ColumnFactory {
         }
       },
       {field: 'jiraStatus.name', header: 'Jira status', isEditable: true},
+      {field: 'pullRequestMeta.targetBranch', header: 'Target branch', isEditable: false, renderer(row: Deployment) {
+         return `${row.pullRequestMeta.targetBranch} <- ${row.pullRequestMeta.sourceBranch}`;
+      } },
       {field: 'pullRequestMeta.status', header: 'Pull request status', isEditable: false},
       {
         field: 'pullRequestMeta.pullLink', header: 'Description', isEditable: false, renderer(row: Deployment) {

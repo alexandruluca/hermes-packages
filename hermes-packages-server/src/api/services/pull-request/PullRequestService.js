@@ -260,6 +260,12 @@ class PullRequestService {
 		let deploymentName = deployment.name;
 		let issueNumber = deployment.pullRequestMeta.issueNumber;
 		let isPullRequestBehind = await githubApi.isPullRequestBehind({repo: deploymentName, pullId});
+		let isMergeable = await githubApi.isPullRequestMergeable({repo: deploymentName, pullId});
+
+		if (!isMergeable) {
+			this.broadcastMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true, failure: true});
+			return;
+		}
 
 		await this.checkPullRequestReviews();
 
@@ -287,8 +293,8 @@ class PullRequestService {
 			};
 			this.broadcastMessage(EventType.PULL_REQUEST_MERGE_BASE_BRANCH, {data: eventData});
 
-			// merge develop into the pull request
-			await githubApi.mergeBranch({repo: deploymentName, sourceBranch: 'develop', targetBranch});
+			// merge the source branch into the pull request
+			await githubApi.mergeBranch({repo: deploymentName, sourceBranch: this.sourceBranch, targetBranch});
 
 			this.broadcastMessage(EventType.PULL_REQUEST_MERGE_BASE_BRANCH, {isCompleted: true});
 
@@ -300,9 +306,12 @@ class PullRequestService {
 
 		await this.mergePullRequest();
 
-		await this.mergeDevelopToRelease();
+		// we only merge in release if targetBranch is develop
+		if (this.targetBranch === 'develop') {
+			await this.mergeDevelopToRelease();
 
-		await this.triggerReleaseBuild();
+			await this.triggerReleaseBuild();
+		}
 	}
 
 	async checkPullRequestReviews() {
