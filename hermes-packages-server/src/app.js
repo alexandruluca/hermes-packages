@@ -137,10 +137,24 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 		if (!req.swagger || !req.swagger.operation) {
 			return next();
 		}
-		var operation = req.swagger.operation;
 
-		logger.debug(`${req.method} ${operation.tags}:${operation.operationId}`);
+		var start = new Date();
+		var operationId = req.swagger && req.swagger.operation ? `:${req.swagger.operation.operationId}` : '';
+
+		var url = `${req.method}:${req.originalUrl}:${operationId}`;
+		var ua = req.headers['user-agent'];
+		var msg = `request start ${url} - ${ua}`;
+
+		logger.debug(msg);
+
+		res.on('finish', async function () {
+			var responseTime = new Date().getTime() - start.getTime();
+			var msg = `request end ${url} -- ${res.statusCode} ${responseTime} ms - ${ua}`;
+			logger.debug(msg);
+		});
+
 		next();
+
 	});
 
 	/**
