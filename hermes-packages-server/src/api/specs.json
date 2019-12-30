@@ -1116,7 +1116,7 @@
 								"type": "string"
 							}
 						},
-						"required": ["title", "body"]
+						"required": ["body"]
 					}
 				}],
 				"description": "Emit a new message",
