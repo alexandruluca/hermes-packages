@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>hermesPackagesWeb</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+  <script>
+      function signOut() {
+        var auth2 = gapi.auth2.getAuthInstance();
+        auth2.signOut();
+      }
+
+      function onSignedIn(googleUser) {
+        const signoutElement = document.getElementById('signout');
+        signoutElement.innerHTML =
+            'Sign out ' + googleUser.getBasicProfile().getEmail();
+      }
+    </script>
+
+<link rel="stylesheet" href="styles.c6efe541eeb1ae48002c.css"></head>
+<body>
+
+    <a href="#" onclick="signOut();" id="signout"></a>
+
+
+  <app-root></app-root>
+<script type="text/javascript" src="runtime.26209474bfa8dc87a77c.js"></script><script type="text/javascript" src="es2015-polyfills.7e65c9559769cd5f38b8.js" nomodule></script><script type="text/javascript" src="polyfills.ac7d1319c07fb27dfe0e.js"></script><script type="text/javascript" src="main.26b7a7279267e3aa8659.js"></script></body>
+</html>
