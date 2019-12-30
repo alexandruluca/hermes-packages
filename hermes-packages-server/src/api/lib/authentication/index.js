@@ -26,10 +26,6 @@ module.exports = {
 	},
 	'user-session': async function (req, authOrSecDef, scopesOrApiKey, callback) {
 		try {
-			req.session.user = {
-				email: 'lpa@test'
-			};
-
 			let user = req.session.user;
 
 			if (!user) {
