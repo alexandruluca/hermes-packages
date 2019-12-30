@@ -105,6 +105,18 @@
 		},
 		"disablePullRequestReview": {
 			"type": "boolean"
+		},
+		"slack": {
+			"type": "object",
+			"required": ["authToken", "channelId"],
+			"properties": {
+				"authToken": {
+					"type": "string"
+				},
+				"channelId": {
+					"type": "string"
+				}
+			}
 		}
 	},
 	"required": [
@@ -117,7 +129,8 @@
 		"githubApi",
 		"jiraApi",
 		"issueProvider",
-		"storageProvider"
+		"storageProvider",
+		"slack"
 	],
 	"definitions": {
 		"aws": {

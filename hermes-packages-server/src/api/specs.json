@@ -1095,6 +1095,39 @@
 					}
 				}
 			}
+		},
+		"/communication/emit": {
+			"post": {
+				"tags": [
+					"communication"
+				],
+				"security": [],
+				"parameters": [{
+					"name": "message",
+					"in": "body",
+					"required": true,
+					"schema": {
+						"type": "object",
+						"properties": {
+							"title": {
+								"type": "string"
+							},
+							"body": {
+								"type": "string"
+							}
+						},
+						"required": ["title", "body"]
+					}
+				}],
+				"description": "Emit a new message",
+				"x-swagger-router-controller": "Communication",
+				"operationId": "emitMessage",
+				"responses": {
+					"200": {
+						"description": "Emit message response"
+					}
+				}
+			}
 		}
 	},
 	"definitions": {

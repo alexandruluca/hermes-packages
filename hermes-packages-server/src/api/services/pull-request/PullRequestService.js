@@ -264,7 +264,10 @@ class PullRequestService {
 
 		if (!isMergeable) {
 			this.broadcastMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true, failure: true});
-			return;
+			throw new ServiceError({
+				message: 'branch is not mergeable',
+				statusCode: StatusCode.CONFLICT
+			});
 		}
 
 		await this.checkPullRequestReviews();
