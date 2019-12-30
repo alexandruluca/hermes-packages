@@ -1,5 +1,5 @@
 const request = require('request-promise');
-const {authToken, channelId} = require('../lib/config');
+const {authToken, channelId} = require('../lib/config').slack;
 
 module.exports = {
 	emitMessage: async (req, res, next) => {
