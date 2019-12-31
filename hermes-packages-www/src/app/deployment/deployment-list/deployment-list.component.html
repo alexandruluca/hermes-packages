@@ -19,6 +19,7 @@
 </p-toast>
 
 <p-table #dt [columns]="cols" [value]="deployments" [lazy]="true" (onLazyLoad)="loadDeployments($event)"
+[tableStyle]="{'table-layout':'auto'}"
     [totalRecords]="totalDeployments" [loading]="loadingDeployments" [rowsPerPageOptions]="[10,20,30]"
     [paginator]="true" [rows]="10" dataKey="id" editMode="row" >
   <ng-template pTemplate="caption" >
