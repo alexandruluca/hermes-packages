@@ -380,7 +380,9 @@ class PullRequestService {
 		await this.branchApi.deleteBranch({branch: this.sourceBranch});
 		this.broadcastMessage(EventType.DELETE_BRANCH, {isCompleted: true});
 
-		this.updateDeploymentSequence(sequences);
+		if (this.targetBranch === 'develop') {
+			this.updateDeploymentSequence(sequences);
+		}
 
 		if (!isVersionChanged) {
 			this.broadcastMessage(EventType.VERSION_NOT_CHANGED, {isCompleted: true});

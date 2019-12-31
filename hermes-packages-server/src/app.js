@@ -142,14 +142,13 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 		var operationId = req.swagger && req.swagger.operation ? `:${req.swagger.operation.operationId}` : '';
 
 		var url = `${req.method}:${req.originalUrl}:${operationId}`;
-		var ua = req.headers['user-agent'];
-		var msg = `request start ${url} - ${ua}`;
+		var msg = `request start ${url}`;
 
 		logger.debug(msg);
 
 		res.on('finish', async function () {
 			var responseTime = new Date().getTime() - start.getTime();
-			var msg = `request end ${url} -- ${res.statusCode} ${responseTime} ms - ${ua}`;
+			var msg = `request end ${url} -- ${res.statusCode} ${responseTime} ms`;
 			logger.debug(msg);
 		});
 
