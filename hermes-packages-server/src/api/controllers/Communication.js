@@ -13,7 +13,7 @@ module.exports = {
 				},
 				json: {
 					channel: channelId,
-					text: title ? `*${title}*\n${body}` : body
+					text: title ? `${title}\n${body}` : body
 				}
 			})
 
