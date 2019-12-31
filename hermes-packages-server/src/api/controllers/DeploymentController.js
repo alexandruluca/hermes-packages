@@ -18,6 +18,7 @@ const ErrorCode = {
 
 const App = module.exports = {
 	createDeployment: async function (req, res, next) {
+		let hasPullMeta = req.swagger.params.pullRequestMeta && req.swagger.params.pullRequestMeta.value
 		let deployment = {
 			name: req.swagger.params.name.value,
 			band: req.swagger.params.band.value,
@@ -27,7 +28,7 @@ const App = module.exports = {
 			iosCfBundleId: req.swagger.params.iosCfBundleId.value,
 			androidVersionCode: req.swagger.params.androidVersionCode.value,
 			deployAsAwsLambdaFunction: req.swagger.params.deployAsAwsLambdaFunction.value === 'true',
-			pullRequestMeta: req.swagger.params.pullRequestMeta ? JSON.parse(req.swagger.params.pullRequestMeta.value) : undefined
+			pullRequestMeta: hasPullMeta ? JSON.parse(req.swagger.params.pullRequestMeta.value) : undefined
 		};
 		for (let prop in deployment) {
 			if (deployment[prop] === undefined) {
