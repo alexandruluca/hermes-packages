@@ -1022,7 +1022,7 @@ var ColumnFactory = /** @class */ (function () {
             },
             { field: 'jiraStatus.name', header: 'Jira status', isEditable: true },
             { field: 'pullRequestMeta.targetBranch', header: 'Target branch', isEditable: false, renderer: function (row) {
-                    return "<div class=\"no-wrap\">V2.0/Develop-Base \u2190 feature/36</div";
+                    return "<div class=\"no-wrap\">" + row.pullRequestMeta.targetBranch + " \u2190 " + row.pullRequestMeta.sourceBranch + "</div";
                 } },
             { field: 'pullRequestMeta.status', header: 'Pull request status', isEditable: false },
             {
