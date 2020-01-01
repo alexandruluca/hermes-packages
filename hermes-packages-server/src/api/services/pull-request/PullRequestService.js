@@ -236,6 +236,7 @@ class PullRequestService {
 	 * @param {Object} options
 	 * @param {Deployment} options.deployment
 	 * @param {String} options.userEmail
+	 * Handles done status transitioning for project issues
 	 * @private
 	 */
 	async handleDoneTransition({deployment, userEmail}) {
@@ -244,7 +245,7 @@ class PullRequestService {
 			userEmail
 		});
 
-		deploymentService.broadCasNewDeploymentAvailable(deployment);
+		// deploymentService.broadCasNewDeploymentAvailable(deployment);
 	}
 
 	/**
