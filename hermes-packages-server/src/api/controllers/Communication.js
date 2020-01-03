@@ -13,19 +13,12 @@ module.exports = {
 				},
 				json: {
 					channel: channelId,
-					attachments: [
-						{
-							"color": "#2eb886",
-							"title": title,
-							"text": body,
-							"fields": []
-						}
-					]
+					text: title ? `${title}\n${body}` : body
 				}
 			})
 
 			res.sendData();
-		} catch (err) {
+		} catch(err) {
 			res.sendData(err);
 		}
 	}
