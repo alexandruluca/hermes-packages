@@ -424,13 +424,9 @@ const App = module.exports = {
 		let tagName = deploymentService.getTagNameByDeployment(existingDeployment);
 
 		try {
-			let buffer = await storageProvider.downloadDeploymentByTag(existingDeployment.name, tagName);
+			let stream = await storageProvider.downloadDeploymentByTag(existingDeployment.name, tagName);
 
-			logger.info('buffer length', buffer.length);
-
-			// stupid error from swagger / superagent so that we can get the data as a buffer
-			req.res.setHeader('Content-type', 'image/jpg');
-			res.end(buffer);
+			stream.pipe(res);
 		} catch (err) {
 			res.sendData(err);
 		}

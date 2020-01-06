@@ -293,23 +293,13 @@ class GithubApi {
 
 		let url = `https://${accessToken}:@api.github.com/repos/${owner}/${repo}/releases/assets/${assetId}`;
 
-		return new Promise((resolve, reject) => {
-			return request({
-				url,
-				headers: {
-					'Accept': 'application/octet-stream',
-					'User-Agent': 'request module'
-				},
-				encoding: null
-			}, function callback(error, response, body) {
-				if (error) {
-					console.error(error);
-				}
-				if (!error && response.statusCode == 200) {
-				}
-
-				resolve(body);
-			});
+		return request({
+			url,
+			headers: {
+				'Accept': 'application/octet-stream',
+				'User-Agent': 'request module'
+			},
+			encoding: null
 		});
 	}
 
