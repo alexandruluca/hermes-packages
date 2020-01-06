@@ -394,7 +394,6 @@ const App = module.exports = {
 		}
 
 		let sortFn = getSemverCmpFunction('version', {asc: false});
-		console.log(query);
 
 		let existingDeployment = deploymentColl.find(query, {sort: sortFn, limit: 1})[0];
 
