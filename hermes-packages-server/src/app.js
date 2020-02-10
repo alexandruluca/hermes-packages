@@ -185,15 +185,16 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	io.initialize(server);
 });
 
-const getData = async (req, res, access_token) => {
+const getData = async (req, res, accessToken) => {
 	const API_URL = "https://api.github.com/user";
 
 	let body = await request(
 		{
-			uri: `${API_URL}?access_token=${access_token}`,
-			method: "GET",
+			uri: API_URL,
+			method: 'GET',
 			headers: {
-				"User-Agent": "test"
+				'User-Agent': 'hermes-packages',
+				'Authorization': accessToken
 			}
 		}
 	);
