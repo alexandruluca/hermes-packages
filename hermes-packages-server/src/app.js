@@ -194,7 +194,7 @@ const getData = async (req, res, accessToken) => {
 			method: 'GET',
 			headers: {
 				'User-Agent': 'hermes-packages',
-				'Authorization': accessToken
+				'Authorization': `Basic ${accessToken}`
 			}
 		}
 	);
