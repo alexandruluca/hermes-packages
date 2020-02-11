@@ -194,12 +194,13 @@ const getData = async (req, res, accessToken) => {
 			method: 'GET',
 			headers: {
 				'User-Agent': 'hermes-packages',
-				'Authorization': `Basic ${accessToken}`
-			}
+				Authorization: `token ${accessToken}`
+			},
+			json: true
 		}
 	);
 
-	req.session.user = JSON.parse(body);
+	req.session.user = body;
 
 	if (isDevelopment) {
 		res.redirect('http://localhost:4200');
