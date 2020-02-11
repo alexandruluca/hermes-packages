@@ -374,7 +374,7 @@ class PullRequestService {
 			targetBranch: this.targetBranch
 		}
 		this.broadcastMessage(EventType.MERGE_PULL_REQUEST, {data: eventData});
-		await this.branchApi.mergePullRequest(this.pullId);
+		await this.branchApi.mergePullRequest(this.pullId, this.sourceBranch, this.targetBranch);
 		this.broadcastMessage(EventType.MERGE_PULL_REQUEST, {isCompleted: true});
 
 		this.broadcastMessage(EventType.DELETE_BRANCH, {data: {sourceBranch: this.sourceBranch}});

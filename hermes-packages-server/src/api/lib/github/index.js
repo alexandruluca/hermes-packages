@@ -401,11 +401,11 @@ class BranchApi {
 		})
 	}
 
-	mergePullRequest(pullId) {
+	mergePullRequest(pullId, sourceBranch, targetBranch) {
 		return this.api.mergePullRequest({
 			pullId,
 			repo: this.repo,
-			commitTitle: `Merged via QA board by ${this.userEmail}`
+			commitTitle: `Merge ${sourceBranch} into ${targetBranch}`
 		});
 	}
 
