@@ -1114,9 +1114,16 @@
 							},
 							"body": {
 								"type": "string"
+							},
+							"subTitle": {
+								"type": "string"
+							},
+							"type": {
+								"type": "string",
+								"enum": ["information", "success", "warning", "error"]
 							}
 						},
-						"required": ["body"]
+						"required": ["title", "body", "type"]
 					}
 				}],
 				"description": "Emit a new message",
@@ -1125,6 +1132,62 @@
 				"responses": {
 					"200": {
 						"description": "Emit message response"
+					}
+				}
+			}
+		},
+		"/projects/{projectName}": {
+			"head": {
+				"tags": [
+					"project"
+				],
+				"description": "Determine if git project exists",
+				"x-swagger-router-controller": "Project",
+				"operationId": "isExistingProject",
+				"parameters": [
+					{
+						"name": "projectName",
+						"in": "path",
+						"description": "Project name",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "true/false response"
+					}
+				}
+			}
+		},
+		"/projects/{projectName}/{serverTag}/configuration": {
+			"get": {
+				"tags": [
+					"project"
+				],
+				"security": [],
+				"description": "Get project configuratuon",
+				"x-swagger-router-controller": "Project",
+				"operationId": "getProjectConfiguration",
+				"parameters": [
+					{
+						"name": "projectName",
+						"in": "path",
+						"description": "Project name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "serverTag",
+						"in": "path",
+						"description": "Server tag",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Project configuration"
 					}
 				}
 			}

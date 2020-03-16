@@ -77,7 +77,7 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 				return
 			}
 
-			res.statusCode = statusCode;
+			res.statusCode = res.statusCode || statusCode;
 
 			res.end(JSON.stringify({
 				success: statusCode >= 200 && statusCode <= 299,

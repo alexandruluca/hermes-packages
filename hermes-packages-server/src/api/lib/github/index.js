@@ -310,6 +310,13 @@ class GithubApi {
 			release_id: releaseId
 		});
 	}
+
+	getRepo(repo) {
+		return octokit.repos.get({
+			repo,
+			owner
+		})
+	}
 };
 
 const githubApi = new GithubApi();
