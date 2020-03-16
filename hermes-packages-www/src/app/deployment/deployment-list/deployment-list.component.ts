@@ -6,6 +6,7 @@ import {MessageService} from 'primeng/api';
 import {ColumnFactory, ColumnMode} from './ColumnFactory';
 import {ActivatedRoute, Router} from '@angular/router';
 import {PresentationDeployment, DeploymentMapper} from 'src/app/common/models/presentation/Deployment';
+import {DeploymentContext} from 'src/app/common/models/domain/DeploymentContext';
 
 export enum DeploymentType {
   PULL_REQUEST = 'pull-request',
@@ -42,7 +43,8 @@ export class DeploymentListComponent implements OnInit {
     {label: 'RELEASE CANDIDATE', value: DeploymentType.RELEASE_CANDIDATE}
   ];
   targetInstallServerTag: string;
-  serverTagOptions: SelectItem[];
+  deploymentContext: DeploymentContext;
+  deploymentServerTagOptions: SelectItem[];
   projectOptions: SelectItem[];
   deploymentBand: SelectItem[] = [
     {label: 'ALL', value: ''},
@@ -69,15 +71,7 @@ export class DeploymentListComponent implements OnInit {
       throw new Error('missing install band');
     }
 
-    const deploymentContext = await this.deploymentService.getPullRequestDeploymentContext(this.installBand);
-
-    this.serverTagOptions = deploymentContext.connectedServers.reduce((tags, server) => {
-      tags.push({
-        value: server.tag,
-        label: server.tag
-      });
-      return tags;
-    }, []);
+    let deploymentContext = this.deploymentContext = await this.deploymentService.getPullRequestDeploymentContext(this.installBand);
 
     this.targetInstallServerTag = deploymentContext.connectedServers[0] && deploymentContext.connectedServers[0].tag;
 
@@ -210,6 +204,19 @@ export class DeploymentListComponent implements OnInit {
   showInstallDeploymentDialog(deployment: Deployment) {
     this.displayDialog = true;
     this.installableDeployment = deployment;
+
+    let servers = this.deploymentContext.connectedServers.filter(server => {
+      return server.deploymentMeta.some(_deployment => _deployment.deploymentName === deployment.name);
+    });
+
+    this.deploymentServerTagOptions = servers.reduce((tags, server) => {
+      tags.push({
+        value: server.tag,
+        label: server.tag
+      });
+      return tags;
+
+    }, [])
   }
 
   async signalDeploymentInstall() {

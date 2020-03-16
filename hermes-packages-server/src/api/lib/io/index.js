@@ -99,16 +99,17 @@ class EventHandler extends EventEmitter {
 		let connections = [];
 
 		logger.debug(`get connected servers for band@${band}`);
-
+		
 		for (let serverTag in connectedClients) {
-			let serverBand = connectedClients[serverTag].band;
+			let {band: serverBand, deploymentMeta} = connectedClients[serverTag];
 			logger.debug(`get connected server ${serverTag}@${serverBand}`);
 			if (serverBand !== band) {
 				continue;
 			}
 			connections.push({
 				tag: serverTag,
-				band: serverBand
+				band: serverBand,
+				deploymentMeta
 			})
 		}
 
