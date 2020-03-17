@@ -654,6 +654,12 @@ class DeploymentService {
 
 		validateBand(band);
 
+		let filterServerTag = serverTag && isProduction;
+
+		if (filterServerTag) {
+			query.serverTags = {$contains: serverTag};
+		}
+
 		let sortFn = getSemverCmpFunction('version', {asc: !getLatestVersion});
 		let limit = getLatestVersion ? 1 : null;
 
