@@ -1370,6 +1370,9 @@ var DeploymentListComponent = /** @class */ (function () {
             });
             return tags;
         }, []);
+        if (this.deploymentServerTagOptions[0]) {
+            this.targetInstallServerTag = this.deploymentServerTagOptions[0].value;
+        }
     };
     DeploymentListComponent.prototype.signalDeploymentInstall = function () {
         return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {

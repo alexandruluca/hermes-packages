@@ -216,7 +216,11 @@ export class DeploymentListComponent implements OnInit {
       });
       return tags;
 
-    }, [])
+    }, []);
+
+    if (this.deploymentServerTagOptions[0]) {
+      this.targetInstallServerTag = this.deploymentServerTagOptions[0].value;
+    }
   }
 
   async signalDeploymentInstall() {
