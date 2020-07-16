@@ -25,9 +25,22 @@ module.exports = {
 	getProjectConfiguration: async (req, res, next) => {
 		let projectName = req.swagger.params.projectName.value;
 		let serverTag = req.swagger.params.serverTag.value;
+		let isBackupServer = serverTag.endsWith('-backup');
 
 		try {
-			let {content: config} = await branchApi.getContents({ref: 'develop', path: `${serverTag}/${projectName}/config.json`});
+			let config;
+			try {
+				let result = await branchApi.getContents({ref: 'develop', path: `${serverTag}/${projectName}/config.json`});
+				config = result.content;
+
+			} catch (err) {
+				if (!isBackupServer) {
+					throw err;
+				}
+				serverTag.replace(/-backup$/, '');
+				let result = await branchApi.getContents({ref: 'develop', path: `${serverTag}/${projectName}/config.json`});
+				config = result.content;
+			}
 
 			res.sendData(config);
 		} catch (err) {
