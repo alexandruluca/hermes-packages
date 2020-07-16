@@ -37,7 +37,7 @@ module.exports = {
 				if (!isBackupServer) {
 					throw err;
 				}
-				serverTag.replace(/-backup$/, '');
+				serverTag = serverTag.replace(/-backup$/, '');
 				let result = await branchApi.getContents({ref: 'develop', path: `${serverTag}/${projectName}/config.json`});
 				config = result.content;
 			}
