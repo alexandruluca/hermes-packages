@@ -410,6 +410,13 @@ class DeploymentService {
 			});
 		}
 
+		let shouldRemove = deployment.pullRequestMeta && deployment.pullRequestMeta.status === PullRequestStatus.MERGED;
+
+		if (shouldRemove) {
+			deploymentCollection.remove(existing);
+			return;
+		}
+
 		existing = _.defaultsDeep(deployment, existing);
 
 		deploymentCollection.update(existing);
@@ -545,7 +552,7 @@ class DeploymentService {
 	getDeploymentById(id) {
 		let deployment = deploymentCollection.findOne({id});
 
-		if(!deployment) {
+		if (!deployment) {
 			throw new ServiceError({
 				message: `deployment not found for id='${id}'`,
 				statusCode: StatusCode.NOT_FOUND,
