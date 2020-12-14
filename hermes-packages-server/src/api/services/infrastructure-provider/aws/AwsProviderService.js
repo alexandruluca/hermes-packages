@@ -115,16 +115,18 @@ class AwsProviderService extends InfrastructureProviderService {
 
 		await uploadFinishedPromise;
 
-		console.log('deployment.version', deployment.version);
-
-		lambdaService.deployLambdaFunction({
-			functionName: stage.resourceName,
-			region: stage.regions[0],
-			s3FileName,
-			band: stage.band,
-			deploymentVersion: deployment.version,
-			stage: 'green' // handle green/blue deployment in the future
+		let updateRegionalLambdas = stage.regions.map(region => {
+			return lambdaService.deployLambdaFunction({
+				functionName: stage.resourceName,
+				region,
+				s3FileName,
+				band: stage.band,
+				deploymentVersion: deployment.version,
+				stage: 'green' // handle green/blue deployment in the future
+			});
 		});
+
+		await Promise.all(updateRegionalLambdas);
 
 		doneCallback();
 	}
