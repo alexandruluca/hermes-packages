@@ -7,6 +7,8 @@ validateConfig(config);
 
 module.exports = config;
 
+config.githubOwner = config.githubApi.owner;
+
 function validateConfig(config) {
 	var Ajv = require('ajv');
 	var ajv = new Ajv();

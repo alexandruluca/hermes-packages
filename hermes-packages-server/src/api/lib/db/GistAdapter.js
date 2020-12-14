@@ -1,16 +1,13 @@
-const {githubApi, BranchApi} = require('../github');
+const {BranchApi} = require('../github');
+const {githubOwner} = require('../../../api/lib/config');
 
 const branchApi = new BranchApi({
-	repo: 'alexandruluca-hq',
-	userEmail: 'luca.p.alexandru@gmail.com'
+	repo: `${githubOwner}-hq`,
+	userEmail: null
 });
 
 class GistAdapter {
-	constructor() {
-		console.log('init adapter');
-	}
 	async loadDatabase(dbname, callback) {
-		console.log('load db');
 		// using dbname, load the database from wherever your adapter expects it
 
 		let {content} = await branchApi.getContents({ref: 'develop', path: 'hermes-deployment-meta.json'});
@@ -25,8 +22,6 @@ class GistAdapter {
 	}
 
 	async saveDatabase(dbname, dbstring, callback) {
-		console.log('save db');
-
 		dbstring = JSON.stringify(JSON.parse(dbstring), null, 4);
 
 		await branchApi.putContents({ref: 'develop', path: 'hermes-deployment-meta.json', content: dbstring});

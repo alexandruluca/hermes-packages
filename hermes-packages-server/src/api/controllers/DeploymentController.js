@@ -90,7 +90,6 @@ const App = module.exports = {
 
 			res.sendData({deploymentName, gitTag, projectName});
 		} catch (err) {
-			console.log(err);
 			res.sendData(err);
 		}
 	},

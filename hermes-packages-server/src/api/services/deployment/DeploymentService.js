@@ -12,6 +12,7 @@ const io = require('../../lib/io');
 const _ = require('lodash');
 const config = require('../../lib/config');
 const {getInstance: getInfraProviderInstance} = require('../infrastructure-provider');
+const {githubApi} = require('../../lib/github');
 
 const ErrorCode = {
 	DEPLOYMENT_EXISTS: 'deployment_exists',
@@ -484,13 +485,10 @@ class DeploymentService {
 	 * @param {Deployment} deployment
 	 */
 	async getDownloadUrl(deployment) {
-		let fileName = this.getDeploymentName(deployment);
-
-		let url = await aws.getDownloadUrl(fileName);
-
+		let gitTag = util.getGitTagNameByDeployment(deployment);
 		return {
-			url,
-			fileName
+			url: `https://github.com/${config.githubOwner}/${deployment.name}/releases/download/${gitTag}/deployment-package`,
+			fileName: 'deployment-package'
 		};
 	}
 

@@ -98,8 +98,6 @@ swaggerTools.initializeMiddleware(require('./api/api.json'), function (middlewar
 		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
 		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=${clientId}&redirect_uri=${ENCODED_REDIRECT_URI}`;
 
-		console.log('auth url');
-		console.log(redirectUrl);
 		res.redirect(redirectUrl);
 	});
 
