@@ -6,17 +6,30 @@ const {PullRequestService} = require('../services/pull-request');
 const {ServiceError, StatusCode} = require('../lib/error');
 const io = require('../lib/io');
 const {githubApi} = require('../lib/github');
-const {jiraApi, JiraTaskStatus} = require('../lib/jira');
+const {JiraTaskStatus} = require('../lib/jira');
 const logger = require('../lib/logger');
 const config = require('../lib/config');
 const issueProvider = require('../providers/issueProvider');
-const storageProvider = require('../providers/storageProvider');
+const {storageProvider} = require('../providers/storageProvider');
 
 const ErrorCode = {
 	DEPLOYMENT_NOT_FOUND: 'deployment_not_found'
 };
 
 const App = module.exports = {
+	canCreateDeployment: async function (req, res, next) {
+		try {
+			let deployment = {
+				name: req.swagger.params.name.value,
+				band: req.swagger.params.band.value,
+				version: req.swagger.params.version.value
+			};
+			let result = await deploymentService.canCreateDeployment(deployment);
+			res.sendData(result);
+		} catch (err) {
+			res.sendData(err);
+		}
+	},
 	createDeployment: async function (req, res, next) {
 		let hasPullMeta = req.swagger.params.pullRequestMeta && req.swagger.params.pullRequestMeta.value
 		let deployment = {
@@ -77,6 +90,7 @@ const App = module.exports = {
 
 			res.sendData({deploymentName, gitTag, projectName});
 		} catch (err) {
+			console.log(err);
 			res.sendData(err);
 		}
 	},
@@ -92,7 +106,7 @@ const App = module.exports = {
 		}
 	},
 
-	getDeployments: async function(req, res, next) {
+	getDeployments: async function (req, res, next) {
 		try {
 			let options = req.swagger.params.options.value;
 
@@ -182,8 +196,14 @@ const App = module.exports = {
 		}
 	},
 
-	getPullRequestDeploymentContext: async function(req, res, next) {
+	getPullRequestDeploymentContext: async function (req, res, next) {
 		try {
+			let context = deploymentService.getPullRequestDeploymentContext();
+			res.sendData(context);
+		} catch (err) {
+			res.sendData(err);
+		}
+		/* try {
 			let band = req.swagger.params.band.value;
 
 			let connectedServers = io.getConnectedServers(band);
@@ -206,10 +226,10 @@ const App = module.exports = {
 			});
 		} catch (err) {
 			res.sendData(err);
-		}
+		} */
 	},
 
-	deleteDeployments: function(req, res, next) {
+	deleteDeployments: function (req, res, next) {
 		try {
 			let deploymentId = req.swagger.params.deploymentId.value;
 			deploymentService.deleteDeployments(deploymentId);
@@ -219,7 +239,7 @@ const App = module.exports = {
 		}
 	},
 
-	updateDeployment: async function(req, res, next) {
+	updateDeployment: async function (req, res, next) {
 		try {
 			let deploymentId = req.swagger.params.deploymentId.value;
 			let {jiraStatusId, pullRequestStatus} = req.swagger.params.deployment.value
@@ -238,30 +258,13 @@ const App = module.exports = {
 		}
 	},
 
-	signalDeploymentInstall: async function(req, res, next) {
+	signalDeploymentInstall: async function (req, res, next) {
 		try {
 			let deploymentName = req.swagger.params.deploymentName.value;
 			let pullId = req.swagger.params.pullId.value;
-			let {serverTags} = req.swagger.params.payload.value;
+			let {stageIdentifier} = req.swagger.params.payload.value;
 
-			console.log('TODO leave only one server tag')
-
-			let deployment = deploymentService.getDeploymentByPullId({deploymentName, pullId});
-
-			if (deployment.deployAsAwsLambdaFunction) {
-				await deploymentService.deployLambdaFunction(deployment, serverTags[0]);
-			} else {
-				deployment.serverTags = serverTags;
-				deploymentService.broadcastDeploymentInstall(deployment);
-			}
-
-			let update = {
-				isUpdating: true,
-				updateVersion: deployment.version,
-				pullRequestMeta: deployment.pullRequestMeta
-			};
-
-			deploymentService.updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
+			await deploymentService.handleDeploymentInstall({deploymentName, stageIdentifier, pullId});
 
 			return res.sendData();
 		} catch (err) {
@@ -302,7 +305,7 @@ const App = module.exports = {
 		}
 	},
 
-	getServerDeploymentMeta: function(req, res, next) {
+	getServerDeploymentMeta: function (req, res, next) {
 		try {
 			const band = req.swagger.params.band.value;
 			const serverDeploymentList = io.getServerDeploymentMeta(band);
@@ -424,7 +427,7 @@ const App = module.exports = {
 		let tagName = deploymentService.getTagNameByDeployment(existingDeployment);
 
 		try {
-			let stream = await storageProvider.downloadDeploymentByTag(existingDeployment.name, tagName);
+			let stream = await storageProvider.getDeploymentStreamByTag(existingDeployment.name, tagName);
 
 			stream.pipe(res);
 		} catch (err) {
@@ -484,7 +487,7 @@ const App = module.exports = {
 		}
 	},
 
-	getDeploymentByIssueNumber: function(req, res, next) {
+	getDeploymentByIssueNumber: function (req, res, next) {
 		let deploymentName = req.swagger.params.deploymentName.value;
 		let taskKey = req.swagger.params.issueNumber.value;
 

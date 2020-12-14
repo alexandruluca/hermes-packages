@@ -12,8 +12,6 @@ const config = require('../../lib/config');
 const CONFIG_XML_PATH = 'client/config.xml';
 const issueProvider = require('../../providers/issueProvider');
 
-require('../../../../typedef');
-
 const EventType = {
 	JIRA_STATUS_UPDATE: 'jira-status-update',
 	VALIDATE_BRANCH_MERGEABILITY: 'validate-branch-mergeability',

@@ -64,6 +64,7 @@ class EventHandler extends EventEmitter {
 
 		clientSocket.on('application-updated', (incomingAppMeta) => {
 			logger.debug(`${serverTag} emited 'application-updated' event`);
+			// isUpdating: false gets set here
 
 			let deploymentMeta = connectedClients[serverTag].deploymentMeta;
 
@@ -99,7 +100,7 @@ class EventHandler extends EventEmitter {
 		let connections = [];
 
 		logger.debug(`get connected servers for band@${band}`);
-		
+
 		for (let serverTag in connectedClients) {
 			let {band: serverBand, deploymentMeta} = connectedClients[serverTag];
 			logger.debug(`get connected server ${serverTag}@${serverBand}`);

@@ -25,6 +25,119 @@
 		}
 	],
 	"paths": {
+		"/projects": {
+			"post": {
+				"tags": [
+					"projects"
+				],
+				"description": "Create project",
+				"x-swagger-router-controller": "ProjectController",
+				"operationId": "createProject",
+				"parameters": [
+					{
+						"name": "project",
+						"in": "body",
+						"description": "Project to create",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"required": [
+								"name",
+								"type"
+							],
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"type": {
+									"type": "string",
+									"enum": [
+										"on-premise",
+										"aws"
+									]
+								},
+								"stages": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"required": [
+											"name",
+											"band"
+										],
+										"properties": {
+											"name": {
+												"type": "string"
+											},
+											"band": {
+												"type": "string",
+												"enum": [
+													"develop",
+													"qa",
+													"release",
+													"production"
+												]
+											},
+											"resourceType": {
+												"type": "string",
+												"enum": [
+													"lambda",
+													"s3"
+												]
+											},
+											"resourceName": {
+												"type": "string"
+											},
+											"regions": {
+												"type": "array",
+												"items": {
+													"type": "string"
+												}
+											},
+											"runtime": {
+												"type": "string",
+												"enum": [
+													"nodejs"
+												]
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"projects"
+				],
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"description": "Get projects",
+				"x-swagger-router-controller": "ProjectController",
+				"operationId": "getProjects",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
 		"/deployments": {
 			"post": {
 				"tags": [
@@ -90,7 +203,10 @@
 						"description": "Deployment is hotfix",
 						"required": false,
 						"type": "string",
-						"enum": ["true", "false"]
+						"enum": [
+							"true",
+							"false"
+						]
 					},
 					{
 						"name": "iosCfBundleId",
@@ -112,7 +228,10 @@
 						"description": "Deployment deployAsAwsLambdaFunction",
 						"required": false,
 						"type": "string",
-						"enum": ["true", "false"]
+						"enum": [
+							"true",
+							"false"
+						]
 					},
 					{
 						"name": "overrideExistingDeployment",
@@ -163,7 +282,10 @@
 										},
 										"direction": {
 											"type": "string",
-											"enum": ["asc", "desc"]
+											"enum": [
+												"asc",
+												"desc"
+											]
 										}
 									}
 								},
@@ -180,6 +302,52 @@
 								}
 							}
 						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/can-create": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Determines if deployment can be created",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "canCreateDeployment",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "query",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "query",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"description": "Deployment version",
+						"required": true,
+						"type": "string"
 					}
 				],
 				"responses": {
@@ -350,7 +518,6 @@
 						}
 					}
 				}
-
 			},
 			"delete": {
 				"tags": [
@@ -388,11 +555,6 @@
 				"tags": [
 					"deployments"
 				],
-				"security": [
-					{
-						"user-session": []
-					}
-				],
 				"description": "Install pull request deployment on a specific server",
 				"x-swagger-router-controller": "DeploymentController",
 				"operationId": "signalDeploymentInstall",
@@ -419,18 +581,15 @@
 						"schema": {
 							"type": "object",
 							"properties": {
-								"serverTags": {
-									"type": "array",
-									"minItems": 1,
-									"items": {
-										"type": "string"
-									}
+								"stageIdentifier": {
+									"type": "string"
 								}
 							},
-							"required": ["serverTags"]
+							"required": [
+								"stageIdentifier"
+							]
 						}
 					}
-
 				],
 				"responses": {
 					"200": {
@@ -440,7 +599,6 @@
 						}
 					}
 				}
-
 			}
 		},
 		"/deployments/{deploymentName}/server/{serverTag}/reset": {
@@ -471,7 +629,6 @@
 						"required": true,
 						"type": "string"
 					}
-
 				],
 				"responses": {
 					"200": {
@@ -481,7 +638,6 @@
 						}
 					}
 				}
-
 			}
 		},
 		"/server/deployment-meta": {
@@ -497,17 +653,19 @@
 				"description": "Get connected servers deployment meta",
 				"x-swagger-router-controller": "DeploymentController",
 				"operationId": "getServerDeploymentMeta",
-				"parameters": [{
-					"name": "band",
-					"in": "query",
-					"type": "string",
-					"enum": [
-						"develop",
-						"release",
-						"qa"
-					],
-					"required": false
-				}],
+				"parameters": [
+					{
+						"name": "band",
+						"in": "query",
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						],
+						"required": false
+					}
+				],
 				"responses": {
 					"200": {
 						"description": "Successful response",
@@ -516,7 +674,6 @@
 						}
 					}
 				}
-
 			}
 		},
 		"/deployments/{deploymentName}/{band}/{version}/upload": {
@@ -1102,30 +1259,41 @@
 					"communication"
 				],
 				"security": [],
-				"parameters": [{
-					"name": "message",
-					"in": "body",
-					"required": true,
-					"schema": {
-						"type": "object",
-						"properties": {
-							"title": {
-								"type": "string"
+				"parameters": [
+					{
+						"name": "message",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"body": {
+									"type": "string"
+								},
+								"subTitle": {
+									"type": "string"
+								},
+								"type": {
+									"type": "string",
+									"enum": [
+										"information",
+										"success",
+										"warning",
+										"error"
+									]
+								}
 							},
-							"body": {
-								"type": "string"
-							},
-							"subTitle": {
-								"type": "string"
-							},
-							"type": {
-								"type": "string",
-								"enum": ["information", "success", "warning", "error"]
-							}
-						},
-						"required": ["title", "body", "type"]
+							"required": [
+								"title",
+								"body",
+								"type"
+							]
+						}
 					}
-				}],
+				],
 				"description": "Emit a new message",
 				"x-swagger-router-controller": "Communication",
 				"operationId": "emitMessage",

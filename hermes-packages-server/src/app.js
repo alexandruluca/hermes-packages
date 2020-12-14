@@ -31,7 +31,7 @@ app.use(
 
 const port = config.port;
 
-swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middleware) {
+swaggerTools.initializeMiddleware(require('./api/api.json'), function (middleware) {
 	const routerOptions = {
 		swaggerUi: '/swagger.json',
 		controllers: path.join(__dirname, 'api/controllers')
@@ -46,8 +46,7 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	}
 
 	app.get('/api', (req, res, next) => {
-
-		res.send(JSON.stringify(require('./api/specs'), null, 4));
+		res.send(JSON.stringify(require('./api/api.json'), null, 4));
 	});
 
 	app.use((req, res, next) => {
@@ -70,8 +69,8 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 				res.end(JSON.stringify({
 					success: false,
 					message: obj.message,
-					errorCode: errCode,
-					errors: obj.errors
+					errors: obj.errors,
+					errorCode: errCode
 				}, null, 4));
 
 				return
@@ -93,17 +92,18 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 		res.end(JSON.stringify(config.webClientConfig));
 	});
 
-	app.get('/api/authorize', async(req, res, next) => {
+	app.get('/api/authorize', async (req, res, next) => {
 		const AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
 		const REDIRECT_URI = callback;
 		const ENCODED_REDIRECT_URI = encodeURIComponent(REDIRECT_URI);
 		const redirectUrl = `${AUTHORIZE_URL}?scope=repo&client_id=${clientId}&redirect_uri=${ENCODED_REDIRECT_URI}`;
 
+		console.log('auth url');
 		console.log(redirectUrl);
 		res.redirect(redirectUrl);
 	});
 
-	app.get('/api/callback', async(req, res, next) => {
+	app.get('/api/callback', async (req, res, next) => {
 		const {code} = req.query;
 
 		try {
@@ -129,8 +129,8 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	});
 
 	/**
-     * Swagger meta
-     */
+	 * Swagger meta
+	 */
 	app.use(middleware.swaggerMetadata());
 
 	app.use((req, res, next) => {
@@ -157,24 +157,24 @@ swaggerTools.initializeMiddleware(require('./api/specs.json'), function (middlew
 	});
 
 	/**
-     * Swagger validatir
-     */
+	 * Swagger validatir
+	 */
 	app.use(middleware.swaggerValidator());
 
 	/**
-     * Swagger security
-     */
+	 * Swagger security
+	 */
 	app.use(middleware.swaggerSecurity(authentication));
 
 	app.use(authentication.errHandler());
 
 	/**
-     * Swagger router
-     */
+	 * Swagger router
+	 */
 	app.use(middleware.swaggerRouter(routerOptions));
 	/**
-     * Swagger ui
-     */
+	 * Swagger ui
+	 */
 	app.use('/api', middleware.swaggerUi());
 
 	var server = http.createServer(app).listen(port, function () {

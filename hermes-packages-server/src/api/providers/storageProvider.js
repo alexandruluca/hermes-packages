@@ -1,4 +1,3 @@
-const awsApi = require('../lib/aws');
 const {githubApi} = require('../lib/github');
 const config = require('../lib/config');
 const {storageProvider} = config;
@@ -9,7 +8,12 @@ class StorageProvider {
 		throw new Error('not implemented');
 	}
 
-	downloadDeploymentByTag(projectName, tagName) {
+	/**
+	 * @param {String} projectName
+	 * @param {String} tagName
+	 * @returns Stream
+	 */
+	getDeploymentStreamByTag(projectName, tagName) {
 		throw new Error('not implemented');
 	}
 }
@@ -17,10 +21,15 @@ class StorageProvider {
 class GithubStorageProvider extends StorageProvider {
 	async uploadDeployment(projectName, tagName, file) {
 		logger.info(`Uploading release asset: ${projectName, tagName}`);
-		let data = await githubApi.createRelease({repo: projectName, tagName, file});
+		await githubApi.createRelease({repo: projectName, tagName, file});
 	}
 
-	downloadDeploymentByTag(projectName, tagName) {
+	/**
+	 * @param {String} projectName
+	 * @param {String} tagName
+	 * @returns Stream
+	 */
+	getDeploymentStreamByTag(projectName, tagName) {
 		return githubApi.downloadDeployment({repo: projectName, tagName});
 	}
 }
@@ -30,10 +39,14 @@ class S3StorageProvider extends StorageProvider {
 		throw new Error('not implemented');
 	}
 
-	downloadDeploymentByTag(projectName, tagName) {
+	/**
+	 * @param {String} projectName
+	 * @param {String} tagName
+	 * @returns Stream
+	 */
+	getDeploymentStreamByTag(projectName, tagName) {
 		throw new Error('not implemented');
 	}
 }
 
-module.exports = storageProvider === 'github' ? new GithubStorageProvider() : new S3StorageProvider()
-
+exports.storageProvider = storageProvider === 'github' ? new GithubStorageProvider() : new S3StorageProvider()

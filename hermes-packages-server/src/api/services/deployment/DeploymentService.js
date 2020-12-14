@@ -1,18 +1,17 @@
 const {ServiceError, StatusCode} = require('../../lib/error');
-const {validateBand, getSemverCmpFunction, denormalizeVersion, normalizeVersion, validateRequiredParam} = require('../../util');
+const util = require('../../util');
 const {isMobileApplicationDeployment} = require('../../util/application-build');
 const {getSequence, SEQUENCES} = require('./utils/sequence');
 const aws = require('../../lib/aws');
 const semver = require('semver');
 const logger = require('../../lib/logger');
 const deploymentCollection = require('../../collections/deployment');
+const projectCollection = require('../../collections/project');
 const deploymentSequenceCollection = require('../../collections/deployment-sequence');
 const io = require('../../lib/io');
 const _ = require('lodash');
 const config = require('../../lib/config');
-const awsLambdaService = require('../aws-lambda');
-
-require('../../../../typedef');
+const {getInstance: getInfraProviderInstance} = require('../infrastructure-provider');
 
 const ErrorCode = {
 	DEPLOYMENT_EXISTS: 'deployment_exists',
@@ -98,7 +97,7 @@ class DeploymentService {
 			let isAscending = sort.direction === 'asc';
 			resultSet = resultSet.simplesort(sort.property, isAscending);
 		} else {
-			let sortFn = getSemverCmpFunction('version', {asc: false});
+			let sortFn = util.getSemverCmpFunction('version', {asc: false});
 			resultSet = resultSet.sort(sortFn);
 		}
 
@@ -177,6 +176,54 @@ class DeploymentService {
 
 	/**
 	 * @param {Deployment} deployment
+	 */
+	canCreateDeployment(deployment) {
+		if (deployment.band === DeploymentBand.QA) {
+			return {
+				canCreate: true
+			};
+		}
+
+		let isRelease = deployment.band === DeploymentBand.RELEASE;
+		let existingDeployment = deploymentCollection.findOne(deployment);
+
+		if (!existingDeployment && !isRelease) {
+			return {
+				canCreate: true
+			};
+		}
+
+		if (isRelease) {
+			let lastDevelopDeployment = this.getLastDevelopDeploymeny(deployment.name);
+
+			if (!lastDevelopDeployment) {
+				return {
+					canCreate: false,
+					message: 'release deployment requires develop deployment to exist, none was found'
+				}
+			}
+
+			// last version is always updatable
+			if (lastDevelopDeployment.version === existingDeployment.version) {
+				return {
+					canCreate: true
+				};
+			}
+
+			return {
+				canCreate: false,
+				message: 'only last release deployment version is updatable'
+			}
+		}
+
+		return {
+			canCreate: false,
+			message: 'deployment already exists'
+		};
+	}
+
+	/**
+	 * @param {Deployment} deployment
 	 * @param {Object} options
 	 * @param {Boolean=} options.overrideExistingDeployment
 	 */
@@ -185,7 +232,7 @@ class DeploymentService {
 		let serverTag = deployment.serverTag;
 		let isPullRequest = !!deployment.pullRequestMeta;
 
-		deployment.version = denormalizeVersion(deployment.version);
+		deployment.version = util.denormalizeVersion(deployment.version);
 
 		let existingDeployment = this.getDeploymentByName(deployment.name);
 
@@ -216,6 +263,8 @@ class DeploymentService {
 		}
 
 		let deploymentName = this.getDeploymentName({...deployment, isHotfix, serverTag});
+
+		console.log('override existing', overrideExistingDeployment);
 
 		if (!isPullRequest && !overrideExistingDeployment) {
 			this.validateDeployment(deployment);
@@ -276,7 +325,7 @@ class DeploymentService {
 
 		let deployments = deploymentCollection.find(query);
 
-		let sortFn = getSemverCmpFunction('version', {asc: false});
+		let sortFn = util.getSemverCmpFunction('version', {asc: false});
 
 		deployments.sort(sortFn);
 
@@ -357,8 +406,9 @@ class DeploymentService {
 		if (existingPackage) {
 			if (band === DeploymentBand.RELEASE) {
 				// validate that the last release deployment always matches the last develop deployment
-				let query = {band: DeploymentBand.DEVELOP, name};
-				let lastDevelopDeployment = this.getLastDeploymentSequence(query);
+				let lastDevelopDeployment = this.getLastDevelopDeploymeny(name);
+
+				console.log('last develop', lastDevelopDeployment);
 
 				if (!lastDevelopDeployment) {
 					throw new ServiceError({
@@ -366,6 +416,8 @@ class DeploymentService {
 						statusCode: StatusCode.NOT_FOUND
 					});
 				}
+
+				console.log('lastDevelopDeployment.version', lastDevelopDeployment.version, existingPackage.version);
 
 				if (lastDevelopDeployment.version === existingPackage.version) {
 					return;
@@ -382,6 +434,11 @@ class DeploymentService {
 				code: ErrorCode.DEPLOYMENT_EXISTS
 			});
 		}
+	}
+
+	getLastDevelopDeploymeny(name) {
+		let query = {band: DeploymentBand.DEVELOP, name};
+		return this.getLastDeploymentSequence(query);
 	}
 
 	/**
@@ -470,7 +527,7 @@ class DeploymentService {
 
 		let deploymentName = name;
 
-		version = normalizeVersion(version, band);
+		version = util.normalizeVersion(version, band);
 
 		if (!deploymentName.endsWith(version)) {
 			deploymentName = `${deploymentName}-${version}`;
@@ -496,14 +553,7 @@ class DeploymentService {
 	 * @param {Deployment} deployment
 	 */
 	getTagNameByDeployment(deployment) {
-		let gitTag = normalizeVersion(deployment.version, deployment.band);
-
-		if (deployment.pullRequestMeta) {
-			let prMeta = deployment.pullRequestMeta
-			gitTag += `-prid-${prMeta.pullId}-${prMeta.issueNumber}`;
-		}
-
-		return gitTag
+		return util.getGitTagNameByDeployment(deployment);
 	}
 
 	getHotfixVersion(deploymentVersion, serverTag, band) {
@@ -514,7 +564,7 @@ class DeploymentService {
 			serverTag: serverTag
 		};
 
-		let sortFn = getSemverCmpFunction('hotfixVersion', {asc: false});
+		let sortFn = util.getSemverCmpFunction('hotfixVersion', {asc: false});
 
 		let lastHotfix = deploymentCollection.find(query, {sort: sortFn, limit: 1})[0];
 		let lastHotfixVersion = (lastHotfix && lastHotfix.hotfixVersion) || '0.0.0';
@@ -659,7 +709,7 @@ class DeploymentService {
 			query.pullRequestMeta = {$exists: false};
 		}
 
-		validateBand(band);
+		util.validateBand(band);
 
 		let filterServerTag = serverTag && isProduction;
 
@@ -667,7 +717,7 @@ class DeploymentService {
 			query.serverTags = {$contains: serverTag};
 		}
 
-		let sortFn = getSemverCmpFunction('version', {asc: !getLatestVersion});
+		let sortFn = util.getSemverCmpFunction('version', {asc: !getLatestVersion});
 		let limit = getLatestVersion ? 1 : null;
 
 		let items = deploymentCollection
@@ -702,7 +752,7 @@ class DeploymentService {
 		let seedBand = isReleaseBand ? DeploymentBand.DEVELOP : band;
 		let deploymentObject = this.getLastDeploymentSequence({band: seedBand, name: deploymentName});
 
-		seedValues.sort(getSemverCmpFunction('version', {asc: false}));
+		seedValues.sort(util.getSemverCmpFunction('version', {asc: false}));
 
 		let versionSequence = JSON.parse(JSON.stringify(seedValues[0]));
 
@@ -753,7 +803,7 @@ class DeploymentService {
 	 * @private
 	 */
 	getLastDeploymentsMap(band, name) {
-		validateBand(band);
+		util.validateBand(band);
 
 		let query = {
 			band
@@ -779,10 +829,12 @@ class DeploymentService {
 	}
 
 	broadcastDeploymentInstall(deployment) {
+		console.log('broadcastDeploymentInstall:: should move in on-prem')
 		return io.broadcastMessage('install-deployment', deployment);
 	}
 
 	broadCasNewDeploymentAvailable(deployment) {
+		console.log('broadCasNewDeploymentAvailable:: should move in on-prem')
 		return io.broadcastMessage('new-deployment', deployment);
 	}
 
@@ -795,6 +847,7 @@ class DeploymentService {
 	 * @param {String} update.version
 	 */
 	updateServerMeta(query, update) {
+		logger.info('updating connected server clients meta info');
 		return io.updateServerMeta(query, update);
 	}
 
@@ -804,8 +857,8 @@ class DeploymentService {
 	 * @param {String} aliasName - lambda alias name
 	 */
 	async deployLambdaFunction(deployment, aliasName) {
-		validateRequiredParam(deployment, 'deployment');
-		validateRequiredParam(aliasName, 'aliasName');
+		util.validateRequiredParam(deployment, 'deployment');
+		util.validateRequiredParam(aliasName, 'aliasName');
 
 		let isDeploymentUploaded = await this.isDeploymentUploaded(deployment);
 		let deploymentName = this.getDeploymentName(deployment);
@@ -824,6 +877,88 @@ class DeploymentService {
 			band: deployment.isProduction ? DeploymentBand.PRODUCTION : deployment.band,
 			deploymentVersion: deployment.version
 		});
+	}
+
+	/**
+	 * @returns DeploymentContext
+	 */
+	getPullRequestDeploymentContext() {
+		/**
+		 * @type Project[]
+		 */
+		let projects = projectCollection.find();
+
+		return projects.reduce((context, project) => {
+			project.stages.forEach(stage => {
+				if (stage.band !== DeploymentBand.QA) {
+					return;
+				}
+				context.connectedServers.push({
+					band: stage.band,
+					deploymentName: project.name,
+					tag: util.getStageIdentifier(stage)
+				});
+			});
+			context.deploymentNames.push(project.name);
+			return context;
+		}, {
+			connectedServers: [], // band + tag
+			deploymentNames: [], // string,
+			projectKeys: [] // string
+		});
+	}
+
+	/**
+	 * Handles a new deployment install
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.pullId
+	 * @param {String} opt.stageIdentifier
+	 */
+	async handleDeploymentInstall({deploymentName, pullId, stageIdentifier}) {
+		let serverTags = [stageIdentifier];
+
+		/**
+		 * @type Project
+		 */
+		let project = projectCollection.findOne({name: deploymentName});
+
+		if (!project) {
+			throw new ServiceError({message: `project not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
+		}
+
+		let stage = util.stageIdentifierToStage(stageIdentifier);
+
+		let existingStage = project.stages.find(s => s.name === stage.name && s.band === stage.band);
+
+		if (!existingStage) {
+			throw new ServiceError({message: `stage not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
+		}
+
+		let deployment = this.getDeploymentByPullId({deploymentName, pullId});
+
+		const doneCallbackFactory = (isUpdating) => {
+			return () => {
+				let update = {
+					isUpdating,
+					updateVersion: deployment.version,
+					pullRequestMeta: deployment.pullRequestMeta
+				};
+
+				this.updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
+			}
+		}
+
+		// emit update in progress
+		doneCallbackFactory(true)();
+
+		// emit update finished
+		// on-prem gets handled by connected client (hermes-package-updater)
+		const doneCallback = doneCallbackFactory(false);
+
+		let infraProviderService = getInfraProviderInstance(project.type);
+
+		infraProviderService.handleDeploymentInstall(existingStage, deployment, doneCallback);
 	}
 }
 
