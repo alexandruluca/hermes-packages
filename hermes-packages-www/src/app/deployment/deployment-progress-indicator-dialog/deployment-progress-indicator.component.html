@@ -1,0 +1,13 @@
+<p-dialog *ngIf="deployment"
+    header="{{deployment.pullRequestMeta.issueNumber}}/{{deployment.pullRequestMeta.pullId}}"
+    [visible]="true" [responsive]="true" showEffect="fade" [modal]="true" [style]="{width: '60%'}">
+    <app-deployment-progress-indicator></app-deployment-progress-indicator>
+    <p-footer>
+        <div class="ui-dialog-buttonpane ui-helper-clearfix">
+            <button
+              type="button" pButton (click)="closeDialog()"
+              label="Ok">
+            </button>
+        </div>
+    </p-footer>
+</p-dialog>

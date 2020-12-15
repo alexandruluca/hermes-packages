@@ -1,39 +1,38 @@
 <p-toast [style]="{marginTop: '80px'}"></p-toast>
 
 <p-toast position="center" key="c" [modal]="true" [baseZIndex]="5000">
-    <ng-template let-message pTemplate="message">
-        <div style="text-align: center">
-            <i class="pi pi-exclamation-triangle" style="font-size: 3em"></i>
-            <h3>{{message.summary}}</h3>
-            <p>{{message.detail}}</p>
-        </div>
-        <div class="ui-g ui-fluid">
-            <div class="ui-g-6">
-                <button type="button" pButton label="Yes" class="ui-button-success"></button>
-            </div>
-            <div class="ui-g-6">
-                <button type="button" pButton label="No" class="ui-button-secondary"></button>
-            </div>
-        </div>
-    </ng-template>
+  <ng-template let-message pTemplate="message">
+    <div style="text-align: center">
+      <i class="pi pi-exclamation-triangle" style="font-size: 3em"></i>
+      <h3>{{message.summary}}</h3>
+      <p>{{message.detail}}</p>
+    </div>
+    <div class="ui-g ui-fluid">
+      <div class="ui-g-6">
+        <button type="button" pButton label="Yes" class="ui-button-success"></button>
+      </div>
+      <div class="ui-g-6">
+        <button type="button" pButton label="No" class="ui-button-secondary"></button>
+      </div>
+    </div>
+  </ng-template>
 </p-toast>
 
 <p-table #dt [columns]="cols" [value]="deployments" [lazy]="true" (onLazyLoad)="loadDeployments($event)"
-[tableStyle]="{'table-layout':'auto'}"
-    [totalRecords]="totalDeployments" [loading]="loadingDeployments" [rowsPerPageOptions]="[10,20,30]"
-    [paginator]="true" [rows]="10" dataKey="id" editMode="row" >
-  <ng-template pTemplate="caption" >
+  [tableStyle]="{'table-layout':'auto'}" [totalRecords]="totalDeployments" [loading]="loadingDeployments"
+  [rowsPerPageOptions]="[10,20,30]" [paginator]="true" [rows]="10" dataKey="id" editMode="row">
+  <ng-template pTemplate="caption">
     <div style="text-align: right" *ngIf="!isFilteredMode">
-        <div class="ui-g-12">
+      <div class="ui-g-12">
         <h3 class="first">Deployment type</h3>
-        <p-dropdown [options]="deploymentTypes"
-        (onChange)="onPullRequestFilterChanged($event.value)"></p-dropdown>
+        <p-dropdown [options]="deploymentTypes" (onChange)="onPullRequestFilterChanged($event.value)"></p-dropdown>
       </div>
     </div>
     <div style="text-align: right">
       <div class="ui-g-12">
         <h3 class="first">Project</h3>
-        <p-dropdown [options]="projectOptions" (onChange)="loadDeploymentsWithFilter('projectKey', $event.value)"></p-dropdown>
+        <p-dropdown [options]="projectOptions" (onChange)="loadDeploymentsWithFilter('projectKey', $event.value)">
+        </p-dropdown>
       </div>
     </div>
   </ng-template>
@@ -49,7 +48,7 @@
     </tr>
     <tr>
       <th *ngFor="let col of columns" [ngSwitch]="col.field">
-          <p-dropdown *ngSwitchCase="'name'" [options]="deploymentNameOptions" [style]="{'width':'100%'}"
+        <p-dropdown *ngSwitchCase="'name'" [options]="deploymentNameOptions" [style]="{'width':'100%'}"
           (onChange)="loadDeploymentsWithFilter(col.field, $event.value)"></p-dropdown>
       </th>
       <th></th>
@@ -59,14 +58,15 @@
 
   <ng-template pTemplate="body" let-rowData let-ri="rowIndex" let-editing="editing">
     <tr [pEditableRow]="rowData">
-      <td  *ngFor="let col of cols;">
+      <td *ngFor="let col of cols;">
         <div *ngIf="col.field !== 'jiraStatus.name'">
-            <div [innerHTML]="getCellValue(rowData, col)">
-            </div>
+          <div [innerHTML]="getCellValue(rowData, col)">
+          </div>
         </div>
         <p-cellEditor *ngIf="col.field === 'jiraStatus.name'">
           <ng-template pTemplate="input">
-            <p-dropdown [options]="rowData.presentationTransitionList" [style]="{'width':'100%'}" [(ngModel)]="rowData.jiraStatus.id">
+            <p-dropdown [options]="rowData.presentationTransitionList" [style]="{'width':'100%'}"
+              [(ngModel)]="rowData.jiraStatus.id">
 
             </p-dropdown>
           </ng-template>
@@ -86,7 +86,7 @@
             (click)="editing = false && onRowEditCancel(rowData, ri)"></button>
         </div>
         <button *ngIf="rowData.$meta.$isInstallable && !editing" type="button" class="pi pi-cloud-upload"
-            (click)="showInstallDeploymentDialog(rowData)"></button>
+          (click)="showInstallDeploymentDialog(rowData)"></button>
       </td>
     </tr>
   </ng-template>
@@ -94,74 +94,91 @@
 
 <app-qa-server-state *ngIf="showServerState"></app-qa-server-state>
 
-<p-dialog
-    header="{{installableDeployment?.pullRequestMeta ? 'Install deployment' : 'Promote to production'}}"
-    [(visible)]="displayDialog" [responsive]="true" showEffect="fade" [modal]="true" [style]="{width: '60%'}">
-    <div class="ui-g ui-fluid" *ngIf="installableDeployment">
-        <div class="ui-g-12">
-          <div class="ui-g-4">
-            <label for="serverTag">Server tag</label>
-          </div>
-          <div class="ui-g-8">
-            <p-dropdown [options]="deploymentServerTagOptions" [(ngModel)]="targetInstallServerTag">
-            </p-dropdown>
-          </div>
-        </div>
-      <div class="ui-g-12">
-        <div class="ui-g-4">
-          <label for="vin">Name:</label>
-        </div>
-        <div class="ui-g-8">
-          {{installableDeployment.name}}
-        </div>
+<p-dialog *ngIf="displayDialog"
+  header="{{installableDeployment?.pullRequestMeta ? 'Install deployment' : 'Promote to production'}}"
+  [(visible)]="displayDialog" [responsive]="true" showEffect="fade" [modal]="true" [style]="{width: '60%'}">
+  <div class="ui-g ui-fluid" *ngIf="installableDeployment">
+    <div class="ui-g-12">
+      <div class="ui-g-4">
+        <label for="serverTag">Server tag</label>
       </div>
-      <div class="ui-g-12">
-        <div class="ui-g-4">
-          <label for="vin">Version:</label>
-        </div>
-        <div class="ui-g-8">
-          {{installableDeployment.version}}
-        </div>
+      <div class="ui-g-8">
+        <p-dropdown [options]="deploymentServerTagOptions" [(ngModel)]="targetInstallServerTag">
+        </p-dropdown>
       </div>
-     <div *ngIf="installableDeployment.pullRequestMeta">
-        <div class="ui-g-12">
-            <div class="ui-g-4">
-              <label for="vin">Source branch:</label>
-            </div>
-            <div class="ui-g-8">
-              {{installableDeployment.pullRequestMeta.sourceBranch}}
-            </div>
-          </div>
-          <div class="ui-g-12">
-              <div class="ui-g-4">
-                <label for="vin">Target branch:</label>
-              </div>
-              <div class="ui-g-8">
-                {{installableDeployment.pullRequestMeta.targetBranch}}
-              </div>
-            </div>
-          <div class="ui-g-12">
-            <div class="ui-g-4">
-              <label for="vin">Pull request link:</label>
-            </div>
-            <div class="ui-g-8">
-              {{installableDeployment.pullRequestMeta.pullLink}}
-            </div>
-          </div>
-     </div>
     </div>
-    <p-footer>
-        <div class="ui-dialog-buttonpane ui-helper-clearfix">
-            <button
-              type="button" pButton icon="pi pi-check" (click)="signalDeploymentInstall()"
-              label="{{installableDeployment?.pullRequestMeta ? 'Install' : 'Promote'}}">
-            </button>
+
+    <div *ngIf="stage" style="width: 100%;">
+      <div class="ui-g-12">
+        <div class="ui-g-4">
+          <label>Resource</label>
         </div>
-    </p-footer>
+        <div class="ui-g-8">
+          {{stage.resourceName}} [{{stage.resourceType}}] [{{stage.regions.join(', ')}}]
+        </div>
+      </div>
+    </div>
+
+    <div class="ui-g-12">
+      <div class="ui-g-4">
+        <label for="vin">Name:</label>
+      </div>
+      <div class="ui-g-8">
+        {{installableDeployment.name}}
+      </div>
+    </div>
+    <div class="ui-g-12">
+      <div class="ui-g-4">
+        <label for="vin">Version:</label>
+      </div>
+      <div class="ui-g-8">
+        {{installableDeployment.version}}
+      </div>
+    </div>
+    <div *ngIf="installableDeployment.pullRequestMeta" style="width: 100%;">
+      <div class="ui-g-12">
+        <div class="ui-g-4">
+          <label for="vin">Source branch:</label>
+        </div>
+        <div class="ui-g-8">
+          {{installableDeployment.pullRequestMeta.sourceBranch}}
+        </div>
+      </div>
+      <div class="ui-g-12">
+        <div class="ui-g-4">
+          <label for="vin">Target branch:</label>
+        </div>
+        <div class="ui-g-8">
+          {{installableDeployment.pullRequestMeta.targetBranch}}
+        </div>
+      </div>
+      <div class="ui-g-12">
+        <div class="ui-g-4">
+          <label for="vin">Pull request link:</label>
+        </div>
+        <div class="ui-g-8">
+          {{installableDeployment.pullRequestMeta.pullLink}}
+        </div>
+      </div>
+
+      <div class="ui-g-12">
+        <app-deployment-progress-indicator></app-deployment-progress-indicator>
+      </div>
+    </div>
+  </div>
+
+  <p-footer>
+    <div class="ui-dialog-buttonpane ui-helper-clearfix">
+      <button type="button" pButton icon="pi pi-check" (click)="signalDeploymentInstall()"
+        label="{{installableDeployment?.pullRequestMeta ? 'Install' : 'Promote'}}">
+      </button>
+    </div>
+  </p-footer>
 </p-dialog>
 
-<app-deployment-progress-indicator [deployment]="doneTransitionedDeployment" (closed)="onProgressIndicatorClosed()">
+<app-deployment-progress-indicator-dialog [deployment]="doneTransitionedDeployment"
+  (closed)="onProgressIndicatorClosed()">
 
-</app-deployment-progress-indicator>
+</app-deployment-progress-indicator-dialog>
 
 <app-loading-mask></app-loading-mask>

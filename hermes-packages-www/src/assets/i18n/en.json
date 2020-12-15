@@ -11,6 +11,10 @@
     "version-bump": "Version was bumped to {{version}}",
     "missing-review": "Pull request has no approving code reviews",
     "validate-jenkins-release-job": "Validating if jenkins release build job exists",
-    "trigger-jenkins-release-job": "Starting jenkins release job"
+    "trigger-jenkins-release-job": "Starting jenkins release job",
+    "github-release-package-stream": "Uploading github package to s3",
+    "aws-lambda-update": "Updating lambda {{resourceName}} to {{gitTag}}",
+    "deployment-update-finished": "Deployment was successfully installed",
+    "notify-package-updater-new-version": "Notifying package updater to install package"
   }
 }

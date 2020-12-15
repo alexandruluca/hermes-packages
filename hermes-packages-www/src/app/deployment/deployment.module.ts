@@ -4,8 +4,9 @@ import {DeploymentListComponent} from './deployment-list/deployment-list.compone
 import {PackageCommonModule} from '../common/common.module';
 import {DeploymentListPullRequestComponent} from './deployment-list/deployment-list-pr.component';
 import {DeploymentListReleaseCandidateComponent} from './deployment-list/deployment-list-rc.component';
-import { DeploymentProgressIndicatorComponent } from './deployment-progress-indicator/deployment-progress-indicator.component';
-import { QaServerStateComponent } from './qa-server-state/qa-server-state.component';
+import {DeploymentProgressIndicatorComponent} from './deployment-progress-indicator/deployment-progress-indicator.component';
+import {DeploymentProgressIndicatorDialogComponent} from './deployment-progress-indicator-dialog/deployment-progress-indicator.component';
+import {QaServerStateComponent} from './qa-server-state/qa-server-state.component';
 import {TooltipModule} from 'primeng/tooltip';
 
 @NgModule({
@@ -14,6 +15,7 @@ import {TooltipModule} from 'primeng/tooltip';
     DeploymentListPullRequestComponent,
     DeploymentListReleaseCandidateComponent,
     DeploymentProgressIndicatorComponent,
+    DeploymentProgressIndicatorDialogComponent,
     QaServerStateComponent
   ],
   imports: [
@@ -28,4 +30,4 @@ import {TooltipModule} from 'primeng/tooltip';
 
   ]
 })
-export class DeploymentModule {}
+export class DeploymentModule { }

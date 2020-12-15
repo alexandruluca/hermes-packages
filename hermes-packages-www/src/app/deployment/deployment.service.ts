@@ -138,12 +138,12 @@ export class DeploymentService {
     });
   }
 
-  signalDeploymentInstall(options: {deploymentName: string, pullId: string, serverTags: string[]}) {
+  signalDeploymentInstall(options: {deploymentName: string, pullId: string, stageIdentifier: string}) {
     return this.clientInstance.apis.deployments.signalDeploymentInstall({
       deploymentName: options.deploymentName,
       pullId: options.pullId,
       payload: {
-        serverTags: options.serverTags
+        stageIdentifier: options.stageIdentifier
       }
     });
   }
