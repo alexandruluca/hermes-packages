@@ -207,9 +207,10 @@ export class DeploymentListComponent implements OnInit {
     this.installableDeployment = deployment;
 
     let servers = this.deploymentContext.connectedServers.filter(server => {
-      return true;//
-      // return server.deploymentMeta.some(_deployment => _deployment.deploymentName === deployment.name);
+      return server.band === this.installBand;
     });
+
+    console.log(servers);
 
     this.deploymentServerTagOptions = servers.reduce((tags, server) => {
       tags.push({
@@ -231,9 +232,11 @@ export class DeploymentListComponent implements OnInit {
     if (!this.deploymentServerTagOptions) {
       return;
     }
-    return this.deploymentServerTagOptions.find(s => {
+    let server = this.deploymentServerTagOptions.find(s => {
       return s.value === this.targetInstallServerTag;
-    }).stage;
+    });
+
+    return server && server.stage;
   }
 
   closeDialog() {
