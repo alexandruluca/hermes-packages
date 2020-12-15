@@ -169,8 +169,11 @@
 
   <p-footer>
     <div class="ui-dialog-buttonpane ui-helper-clearfix">
-      <button type="button" pButton icon="pi pi-check" (click)="signalDeploymentInstall()"
+      <button type="button" pButton icon="pi pi-check" (click)="signalDeploymentInstall()" [disabled]="updateInProgress"
         label="{{installableDeployment?.pullRequestMeta ? 'Install' : 'Promote'}}">
+      </button>
+      <button type="button" pButton icon="pi" (click)="closeDialog()" [disabled]="updateInProgress"
+        label="{{updateInitialized ? 'OK' :'Cancel'}}">
       </button>
     </div>
   </p-footer>

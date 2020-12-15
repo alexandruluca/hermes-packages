@@ -35,6 +35,8 @@ export class DeploymentListComponent implements OnInit {
   doneTransitionedDeployment: Deployment;
   displayDialog: boolean;
   cols: any[];
+  updateInProgress = false;
+  updateInitialized = false;
   deploymentNameOptions: SelectItem[];
   deploymentStatuses: SelectItem[];
   deploymentTypes: SelectItem[] = [
@@ -226,7 +228,7 @@ export class DeploymentListComponent implements OnInit {
   }
 
   get stage(): Stage {
-    if(!this.deploymentServerTagOptions) {
+    if (!this.deploymentServerTagOptions) {
       return;
     }
     return this.deploymentServerTagOptions.find(s => {
@@ -234,8 +236,16 @@ export class DeploymentListComponent implements OnInit {
     }).stage;
   }
 
+  closeDialog() {
+    this.displayDialog = false;
+    this.updateInitialized = false;
+  }
+
   async signalDeploymentInstall() {
     const isPullRequest = this.installableDeployment.pullRequestMeta;
+
+    this.updateInProgress = true;
+    this.updateInitialized = true;
 
     try {
       if (isPullRequest) {
@@ -254,7 +264,7 @@ export class DeploymentListComponent implements OnInit {
     } catch (err) {
       this.messageService.add({severity: 'error', summary: err.message, detail: err.message});
     } finally {
-      // this.displayDialog = false;
+      this.updateInProgress = false;
     }
   }
 
