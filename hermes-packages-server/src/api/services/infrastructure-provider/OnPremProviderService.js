@@ -1,7 +1,6 @@
 const InfrastructureProviderService = require('./InfrastructureProviderService');
-const {globalEventBusService} = require('../event-bus/GlobalEventBusService');
+const {eventBusService} = require('../event-bus/EventBusService');
 const {getStageIdentifier} = require('../../util');
-const io = require('../../lib/io');
 const {DeploymentBand} = require('../deployment/DeploymentService');
 
 class OnPremProviderService extends InfrastructureProviderService {
@@ -35,7 +34,7 @@ class OnPremProviderService extends InfrastructureProviderService {
 
 		// if release => broadCasNewDeploymentAvailable
 		// if pull request => broadcastDeploymentInstall
-		this.broadcastDeploymentInstall(deployment);
+		this.emitDeploymentInstall(deployment);
 	}
 
 	/**
@@ -51,7 +50,7 @@ class OnPremProviderService extends InfrastructureProviderService {
 		let serverTags = [stageIdentifier];
 
 		deployment.serverTags = serverTags;
-		this.broadcastDeploymentInstall(deployment);
+		this.emitDeploymentInstall(deployment);
 
 		let update = {
 			isUpdating: true,
@@ -65,22 +64,22 @@ class OnPremProviderService extends InfrastructureProviderService {
 	 * Signals hermes-package-updater to install the specified deployment
 	 * @param {Deployment} deployment
 	 */
-	broadcastDeploymentInstall(deployment) {
-		globalEventBusService.emitDeploymentStatusUpdate('notify-package-updater-new-version', {isCompleted: true});
-		globalEventBusService.emitDeploymentStatusUpdate('package-updater-update-in-progress');
-		return io.broadcastMessage('install-deployment', deployment);
+	emitDeploymentInstall(deployment) {
+		eventBusService.emitDeploymentStatusUpdate('notify-package-updater-new-version', {isCompleted: true});
+		eventBusService.emitDeploymentStatusUpdate('package-updater-update-in-progress');
+		return eventBusService.emitMessage('install-deployment', deployment);
 	}
 
 	/**
 	 * Signals hermes-package-updater that a new package is available. Used when automatically updating PR based deployments
 	 * @param {Deployment} deployment
 	 */
-	broadCasNewDeploymentAvailable(deployment) {
-		return io.broadcastMessage('new-deployment', deployment);
+	emitNewDeploymentAvailable(deployment) {
+		return eventBusService.emitMessage('new-deployment', deployment);
 	}
 
 	getServerDeploymentMeta(band) {
-		return io.getServerDeploymentMeta(band);
+		return eventBusService.getServerDeploymentMeta(band);
 	}
 }
 

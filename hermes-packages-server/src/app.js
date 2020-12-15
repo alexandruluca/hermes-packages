@@ -8,7 +8,7 @@ const app = express();
 const http = require('http');
 const swaggerTools = require('swagger-tools');
 const hbs = require('express-handlebars');
-const io = require('./api/lib/io');
+const {eventBusService} = require('./api/services/event-bus/EventBusService');
 const cors = require('cors');
 const cookieParser = require('cookie-parser')
 const viewsDir = path.join(__dirname, 'views');
@@ -118,12 +118,11 @@ swaggerTools.initializeMiddleware(require('./api/api.json'), function (middlewar
 				}
 			);
 
-			const access_token = body.split("&")[0].split("=")[1];
-			let data = getData(req, res, access_token);
+			const accessToken = body.split("&")[0].split("=")[1];
+			getData(req, res, accessToken);
 		} catch (err) {
 			res.status(500).json({message: err.message});
 		}
-
 	});
 
 	/**
@@ -151,7 +150,6 @@ swaggerTools.initializeMiddleware(require('./api/api.json'), function (middlewar
 		});
 
 		next();
-
 	});
 
 	/**
@@ -180,7 +178,7 @@ swaggerTools.initializeMiddleware(require('./api/api.json'), function (middlewar
 		console.info('Swagger-ui is available on http://localhost:' + port + '/api/docs');
 	});
 
-	io.initialize(server);
+	eventBusService.initialize(server);
 });
 
 const getData = async (req, res, accessToken) => {

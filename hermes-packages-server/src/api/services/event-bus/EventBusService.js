@@ -1,14 +1,16 @@
-const EventEmitter = require('events'); var socket;
 const io = require('socket.io');
 const connectedClients = {};
 const WEB_CLIENT_ROOM_NAME = 'web-client';
-const logger = require('../logger');
+const logger = require('../../lib/logger');
 const Event = {
 	PACKAGE_UPDATER_CONNECTED: 'package-updater-connected',
 	APPLCATION_UPDATED: 'application-updated'
 }
 
-class EventHandler extends EventEmitter {
+class EventBusService {
+	constructor() {
+		this.emitedEventData = {};
+	}
 	initialize(server) {
 		this.socket = io(server);
 		this.setupEvents();
@@ -47,7 +49,7 @@ class EventHandler extends EventEmitter {
 
 		clientSocket.on('disconnect', () => {
 			for (let serverTag in connectedClients) {
-				if (connectedClients[serverTag] === socket) {
+				if (connectedClients[serverTag] === clientSocket) {
 					delete connectedClients[serverTag];
 					break;
 				}
@@ -91,8 +93,29 @@ class EventHandler extends EventEmitter {
 		this.socket.to(WEB_CLIENT_ROOM_NAME).emit(eventName, data);
 	}
 
-	broadcastMessage(event, data) {
+	emitMessage(event, data) {
 		this.socket.emit(event, data);
+	}
+
+	emitDeploymentStatusUpdate(eventName, {data = null, isCompleted = false, failure = false} = {}) {
+		if (data) {
+			this.emitedEventData[eventName] = data;
+		}
+		data = data || this.emitedEventData[eventName];
+
+		if (isCompleted) {
+			delete this.emitedEventData[eventName];
+		}
+
+		return this.emitMessage('deployment-status-update', {
+			eventName,
+			data,
+			action: failure ? 'failure' : (isCompleted ? 'end' : 'start'),
+			issueNumber: this.issueNumber,
+			targetBranch: this.targetBranch,
+			sourceBranch: this.sourceBranch,
+			pullId: this.pullId
+		});
 	}
 
 	getConnectedServers(band) {
@@ -175,4 +198,4 @@ class EventHandler extends EventEmitter {
 	}
 }
 
-module.exports = new EventHandler();
+exports.eventBusService = new EventBusService();

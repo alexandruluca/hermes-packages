@@ -8,7 +8,7 @@ const logger = require('../../lib/logger');
 const deploymentCollection = require('../../collections/deployment');
 const projectCollection = require('../../collections/project');
 const deploymentSequenceCollection = require('../../collections/deployment-sequence');
-const io = require('../../lib/io');
+const {eventBusService} = require('../event-bus/EventBusService');
 const _ = require('lodash');
 const config = require('../../lib/config');
 const {getInstance: getInfraProviderInstance, getAllInstances: getAllInfraProviderInstances} = require('../infrastructure-provider');
@@ -825,14 +825,14 @@ class DeploymentService {
 		}, {});
 	}
 
-	broadcastDeploymentInstall(deployment) {
-		console.log('broadcastDeploymentInstall:: should move in on-prem')
-		return io.broadcastMessage('install-deployment', deployment);
+	emitDeploymentInstall(deployment) {
+		console.log('emitDeploymentInstall:: should move in on-prem')
+		return eventBusService.emitMessage('install-deployment', deployment);
 	}
 
-	broadCasNewDeploymentAvailable(deployment) {
-		console.log('broadCasNewDeploymentAvailable:: should move in on-prem')
-		return io.broadcastMessage('new-deployment', deployment);
+	emitNewDeploymentAvailable(deployment) {
+		console.log('emitNewDeploymentAvailable:: should move in on-prem')
+		return eventBusService.emitMessage('new-deployment', deployment);
 	}
 
 	/**
@@ -845,7 +845,7 @@ class DeploymentService {
 	 */
 	updateServerMeta(query, update) {
 		logger.info('updating connected server clients meta info');
-		return io.updateServerMeta(query, update);
+		return eventBusService.updateServerMeta(query, update);
 	}
 
 	/**

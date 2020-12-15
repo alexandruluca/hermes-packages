@@ -6,7 +6,7 @@ const {getGitTagNameByDeployment} = require('../../../util');
 const {storageProvider} = require('../../../providers/storageProvider');
 const {lambdaService} = require('./LambdaService');
 const LambdaRuntimes = ['nodejs'];
-const {globalEventBusService} = require('../../event-bus/GlobalEventBusService');
+const {eventBusService} = require('../../event-bus/EventBusService');
 
 class AwsProviderService extends InfrastructureProviderService {
 	/**
@@ -113,7 +113,7 @@ class AwsProviderService extends InfrastructureProviderService {
 		let s3FileName = `${deployment.name}/${stage.name}.zip`;
 		let readStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
 
-		globalEventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage);
+		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage);
 
 		let {writeStream, promise: uploadFinishedPromise} = await s3Service.uploadStream(s3FileName);
 
@@ -121,11 +121,11 @@ class AwsProviderService extends InfrastructureProviderService {
 
 		await uploadFinishedPromise;
 
-		globalEventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage, {isCompleted: true});
+		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage, {isCompleted: true});
 
 		let updateRegionalLambdas = stage.regions.map(async (region) => {
 			let message = 'aws-lambda-update';
-			globalEventBusService.emitDeploymentStatusUpdate(message, {
+			eventBusService.emitDeploymentStatusUpdate(message, {
 				data: {
 					resourceName: stage.resourceName + '-' + region,
 					gitTag
@@ -139,7 +139,7 @@ class AwsProviderService extends InfrastructureProviderService {
 				deploymentVersion: deployment.version,
 				stage: 'green' // handle green/blue deployment in the future
 			});
-			globalEventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
+			eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
 		});
 
 		await Promise.all(updateRegionalLambdas);
@@ -148,7 +148,7 @@ class AwsProviderService extends InfrastructureProviderService {
 			projectId: project.id,
 			stageId: stage.id,
 			deploymentId: deployment.id
-		})
+		});
 	}
 
 	/**

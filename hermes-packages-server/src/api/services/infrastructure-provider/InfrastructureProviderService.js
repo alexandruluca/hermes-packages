@@ -1,4 +1,4 @@
-const {globalEventBusService} = require('../event-bus/GlobalEventBusService');
+const {eventBusService} = require('../event-bus/EventBusService');
 const deploymentStateCollection = require('../../collections/deployment-state');
 const projectCollection = require('../../collections/project');
 const deploymentCollection = require('../../collections/deployment');
@@ -86,6 +86,7 @@ module.exports = class InfrastructureProviderService {
 
 		deploymentStateCollection.upsert(query, update);
 
-		globalEventBusService.emitDeploymentStatusUpdate('deployment-update-finished', {isCompleted: true});
+		eventBusService.emitDeploymentStatusUpdate('deployment-update-finished', {isCompleted: true});
+		eventBusService.emitWebClientUpdateAvailable();
 	}
 }

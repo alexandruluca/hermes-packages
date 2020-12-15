@@ -84,7 +84,7 @@ const App = module.exports = {
 
 			if (!isHotfix) {
 				//emit only if not a hotfix
-				deploymentService.broadCasNewDeploymentAvailable(deployment);
+				deploymentService.emitNewDeploymentAvailable(deployment);
 			}
 
 			res.sendData({deploymentName, gitTag, projectName});
@@ -599,7 +599,7 @@ const App = module.exports = {
 			await deploymentService.deployLambdaFunction(deployment, serverTag);
 		}
 
-		deploymentService.broadcastDeploymentInstall(deployment);
+		deploymentService.emitDeploymentInstall(deployment);
 	}
 };
 
