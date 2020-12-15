@@ -74,6 +74,10 @@ module.exports = class InfrastructureProviderService {
 			};
 		});
 
+		if (!band) {
+			return deploymentMeta;
+		}
+
 		return deploymentMeta.filter(d => d.band === band);
 	}
 
