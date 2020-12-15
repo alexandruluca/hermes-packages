@@ -886,8 +886,6 @@ class DeploymentService {
 	 * @param {String} opt.stageIdentifier
 	 */
 	async handleDeploymentInstall({deploymentName, pullId, stageIdentifier}) {
-		let serverTags = [stageIdentifier];
-
 		/**
 		 * @type Project
 		 */
@@ -897,6 +895,9 @@ class DeploymentService {
 			throw new ServiceError({message: `project not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
 		}
 
+		/**
+		 * @type Stage
+		 */
 		let stage = util.stageIdentifierToStage(stageIdentifier);
 
 		let existingStage = project.stages.find(s => s.name === stage.name && s.band === stage.band);
@@ -905,30 +906,57 @@ class DeploymentService {
 			throw new ServiceError({message: `stage not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
 		}
 
+		/**
+		 * @type Deployment
+		 */
 		let deployment = this.getDeploymentByPullId({deploymentName, pullId});
-
-		const doneCallbackFactory = (isUpdating) => {
-			return () => {
-				let update = {
-					isUpdating,
-					updateVersion: deployment.version,
-					pullRequestMeta: deployment.pullRequestMeta
-				};
-
-				this.updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
-			}
-		}
-
-		// emit update in progress
-		doneCallbackFactory(true)();
-
-		// emit update finished
-		// on-prem gets handled by connected client (hermes-package-updater)
-		const doneCallback = doneCallbackFactory(false);
 
 		let infraProviderService = getInfraProviderInstance(project.type);
 
-		await infraProviderService.handleDeploymentInstall(existingStage, project, deployment, doneCallback);
+		await infraProviderService.handleDeploymentInstall({stage: existingStage, project, deployment});
+	}
+
+	/**
+	 * Reset a stage to release
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.stageIdentifier
+	 */
+	async resetDeploymentToRelease({deploymentName, stageIdentifier}) {
+		/**
+		 * @type Project
+		 */
+		let project = projectCollection.findOne({name: deploymentName});
+
+		if (!project) {
+			throw new ServiceError({message: `project not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
+		}
+
+		/**
+		 * @type Deployment
+		 */
+		let deployment = this.getLastDeployment({band: DeploymentBand.RELEASE, name: deploymentName});
+
+		if (!deployment) {
+			throw new ServiceError({
+				message: `release deployment not found for ${deploymentName}`,
+				statusCode: StatusCode.NOT_FOUND,
+				code: ErrorCode.DEPLOYMENT_NOT_FOUND
+			})
+		}
+
+		/**
+		 * @type Stage
+		 */
+		let stage = util.stageIdentifierToStage(stageIdentifier);
+
+		let existingStage = project.stages.find(s => s.name === stage.name && s.band === stage.band);
+
+		if (!existingStage) {
+			throw new ServiceError({message: `stage not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
+		}
+
+		await getInfraProviderInstance(project.type).resetDeploymentToRelease({project, deployment, stage: existingStage});
 	}
 
 	getServerDeploymentMeta(band) {

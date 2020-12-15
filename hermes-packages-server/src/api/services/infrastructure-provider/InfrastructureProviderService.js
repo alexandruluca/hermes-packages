@@ -13,12 +13,23 @@ module.exports = class InfrastructureProviderService {
 	}
 
 	/**
+	 * @param {Object} opt
+	 * @param {Stage} opt.stage
+	 * @param {Project} opt.project
+	 * @param {Deployment} opt.deployment
+	 */
+	async handleDeploymentInstall({stage, project, deployment}) {
+		throw new Error('not implemented');
+	}
+
+	/**
+	 * Reset a stage to release
+	 * @param {Object} opt
 	 * @param {Stage} stage
 	 * @param {Project} project
 	 * @param {Deployment} deployment
-	 * @param {Function} doneCallback
 	 */
-	async handleDeploymentInstall(stage, project, deployment, doneCallback) {
+	async resetDeploymentToRelease({stage, project, deployment}) {
 		throw new Error('not implemented');
 	}
 
@@ -45,7 +56,7 @@ module.exports = class InfrastructureProviderService {
 			return {
 				version: deployment.version,
 				deploymentName: deployment.name,
-				band: deployment.band,
+				band: stage.band,
 				serverTag: getStageIdentifier(stage),
 				updateMeta: {},
 				pullRequestMeta: deployment.pullRequestMeta

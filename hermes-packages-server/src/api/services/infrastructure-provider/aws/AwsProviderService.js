@@ -99,12 +99,12 @@ class AwsProviderService extends InfrastructureProviderService {
 	}
 
 	/**
-	 * @param {Stage} stage
-	 * @param {Project} project
-	 * @param {Deployment} deployment
-	 * @param {Function} doneCallback
+	 * @param {Object} opt
+	 * @param {Stage} opt.stage
+	 * @param {Project} opt.project
+	 * @param {Deployment} opt.deployment
 	 */
-	async handleDeploymentInstall(stage, project, deployment, doneCallback) {
+	async handleDeploymentInstall({stage, project, deployment}) {
 		logger.info('AWS::handleDeploymentInstall');
 
 		let uploadingS3PackageMessage = `github-release-package-stream`;
@@ -149,8 +149,19 @@ class AwsProviderService extends InfrastructureProviderService {
 			stageId: stage.id,
 			deploymentId: deployment.id
 		})
+	}
 
-		doneCallback();
+	/**
+	 * Reset a stage to release
+	 * @param {Object} opt
+	 * @param {Stage} stage
+	 * @param {Project} project
+	 * @param {Deployment} deployment
+	 */
+	async resetDeploymentToRelease({stage, project, deployment}) {
+		logger.info('AWS::resetDeploymentToRelease');
+
+		return this.handleDeploymentInstall({stage, project, deployment});
 	}
 }
 

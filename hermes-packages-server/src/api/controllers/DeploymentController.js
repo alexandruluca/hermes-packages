@@ -274,28 +274,10 @@ const App = module.exports = {
 		try {
 			let deploymentName = req.swagger.params.deploymentName.value;
 			let serverTag = req.swagger.params.serverTag.value;
+			let stageIdentifier = serverTag;
 
-			let deployment = deploymentService.getLastDeployment({band: DeploymentBand.RELEASE, name: deploymentName});
 
-			if (!deployment) {
-				throw new ServiceError({
-					message: `release deployment not found for ${deploymentName}`,
-					statusCode: StatusCode.NOT_FOUND,
-					code: ErrorCode.DEPLOYMENT_NOT_FOUND
-				})
-			}
-
-			let serverTags = [serverTag];
-
-			deployment.serverTags = serverTags;
-			deploymentService.broadcastDeploymentInstall(deployment);
-
-			let update = {
-				isUpdating: true,
-				updateVersion: deployment.version,
-				pullRequestMeta: deployment.pullRequestMeta
-			};
-			deploymentService.updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
+			await deploymentService.resetDeploymentToRelease({deploymentName, stageIdentifier});
 
 			return res.sendData();
 		} catch (err) {
