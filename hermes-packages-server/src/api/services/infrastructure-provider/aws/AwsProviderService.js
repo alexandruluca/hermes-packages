@@ -135,7 +135,7 @@ class AwsProviderService extends InfrastructureProviderService {
 				functionName: stage.resourceName,
 				region,
 				s3FileName,
-				band: stage.band,
+				band: stage.band === 'production' ? 'release' : stage.band,
 				deploymentVersion: deployment.version,
 				stage: 'green' // handle green/blue deployment in the future
 			});
@@ -154,14 +154,27 @@ class AwsProviderService extends InfrastructureProviderService {
 	/**
 	 * Reset a stage to release
 	 * @param {Object} opt
-	 * @param {Stage} stage
 	 * @param {Project} project
 	 * @param {Deployment} deployment
+	 * @param {Stage} stage
 	 */
-	async resetDeploymentToRelease({stage, project, deployment}) {
+	async resetDeploymentToRelease({project, deployment, stage}) {
 		logger.info('AWS::resetDeploymentToRelease');
 
-		return this.handleDeploymentInstall({stage, project, deployment});
+		return this.handleDeploymentInstall({project, deployment, stage});
+	}
+
+	/**
+	 * Promote release deployment to production
+	 * @param {Object} opt
+	 * @param {Project} project
+	 * @param {Deployment} deployment
+	 * @param {Stage} stage
+	 */
+	promoteDeploymentToProduction({project, deployment, stage}) {
+		logger.info('AWS::promoteDeploymentToProduction');
+
+		return this.handleDeploymentInstall({project, deployment, stage});
 	}
 }
 

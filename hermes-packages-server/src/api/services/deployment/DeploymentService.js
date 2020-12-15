@@ -408,16 +408,12 @@ class DeploymentService {
 				// validate that the last release deployment always matches the last develop deployment
 				let lastDevelopDeployment = this.getLastDevelopDeploymeny(name);
 
-				console.log('last develop', lastDevelopDeployment);
-
 				if (!lastDevelopDeployment) {
 					throw new ServiceError({
 						message: `no ${DeploymentBand.DEVELOP} band deployment found for '${name}'`,
 						statusCode: StatusCode.NOT_FOUND
 					});
 				}
-
-				console.log('lastDevelopDeployment.version', lastDevelopDeployment.version, existingPackage.version);
 
 				if (lastDevelopDeployment.version === existingPackage.version) {
 					return;
@@ -851,7 +847,7 @@ class DeploymentService {
 	/**
 	 * @returns DeploymentContext
 	 */
-	getPullRequestDeploymentContext() {
+	getPullRequestDeploymentContext(band) {
 		/**
 		 * @type Project[]
 		 */
@@ -859,7 +855,7 @@ class DeploymentService {
 
 		return projects.reduce((context, project) => {
 			project.stages.forEach(stage => {
-				if (stage.band !== DeploymentBand.QA) {
+				if (stage.band !== band) {
 					return;
 				}
 				context.connectedServers.push({
@@ -886,34 +882,18 @@ class DeploymentService {
 	 * @param {String} opt.stageIdentifier
 	 */
 	async handleDeploymentInstall({deploymentName, pullId, stageIdentifier}) {
-		/**
-		 * @type Project
-		 */
-		let project = projectCollection.findOne({name: deploymentName});
-
-		if (!project) {
-			throw new ServiceError({message: `project not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
-		}
-
-		/**
-		 * @type Stage
-		 */
-		let stage = util.stageIdentifierToStage(stageIdentifier);
-
-		let existingStage = project.stages.find(s => s.name === stage.name && s.band === stage.band);
-
-		if (!existingStage) {
-			throw new ServiceError({message: `stage not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
-		}
+		let {project, stage} = this._getUpdatePrerequisites({deploymentName, pullId, stageIdentifier});
 
 		/**
 		 * @type Deployment
 		 */
 		let deployment = this.getDeploymentByPullId({deploymentName, pullId});
 
+		this._assertExistingDeployment(deployment, deploymentName);
+
 		let infraProviderService = getInfraProviderInstance(project.type);
 
-		await infraProviderService.handleDeploymentInstall({stage: existingStage, project, deployment});
+		await infraProviderService.handleDeploymentInstall({stage, project, deployment});
 	}
 
 	/**
@@ -923,6 +903,87 @@ class DeploymentService {
 	 * @param {String} opt.stageIdentifier
 	 */
 	async resetDeploymentToRelease({deploymentName, stageIdentifier}) {
+		let {project, stage} = this._getUpdatePrerequisites({deploymentName, stageIdentifier});
+
+		/**
+		 * @type Deployment
+		 */
+		let deployment = this.getLastDeployment({band: DeploymentBand.RELEASE, name: deploymentName});
+
+		this._assertExistingDeployment(deployment, deploymentName);
+
+		await getInfraProviderInstance(project.type).resetDeploymentToRelease({project, deployment, stage});
+	}
+
+	/**
+	 * Promote release deployment to production
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.version
+	 * @param {String} opt.stageIdentifier
+	 */
+	async promoteDeploymentToProduction({deploymentName, version, stageIdentifier}) {
+		let serverTag = stageIdentifier;
+		let band = DeploymentBand.RELEASE;
+
+		let {project, stage} = this._getUpdatePrerequisites({deploymentName, stageIdentifier});
+
+		let deployment = deploymentCollection.findOne({
+			band,
+			version,
+			name: deploymentName
+		});
+
+		if (!deployment) {
+			throw new ServiceError({
+				message: `deployment '${deploymentName}@${version}' not found`,
+				statusCode: StatusCode.NOT_FOUND,
+				code: ErrorCode.DEPLOYMENT_NOT_FOUND
+			});
+		}
+
+		let query = {
+			band,
+			isProduction: true,
+			name: deploymentName
+		};
+
+		let sort = util.getSemverCmpFunction('version', {asc: false});
+
+		let latestProdDeployment = deploymentCollection.find(query, {sort, limit: 1})[0];
+
+		if (latestProdDeployment && latestProdDeployment.serverTags.includes(serverTag)) {
+			let cmpRes = semverCmp(latestProdDeployment.version, version);
+
+			if (cmpRes === 1) {
+				throw new Error(`unable to promote a lower version then '${latestProdDeployment.version}'`);
+			} else if (cmpRes === 0) {
+				console.log('add again');
+				// throw new Error(`deployment ${deploymentName}@${version} is already promoted for server '${serverTag}'`);
+			}
+		}
+
+		deployment.isProduction = true;
+		deployment.serverTags = deployment.serverTags || []
+
+		if (!deployment.serverTags.includes(serverTag)) {
+			deployment.serverTags.push(serverTag);
+		}
+
+		let infraProviderService = getInfraProviderInstance(project.type);
+
+		await infraProviderService.promoteDeploymentToProduction({project, deployment, stage});
+
+		this.updateDeployment(deployment);
+	}
+
+	/**
+	 * Get project, deployment, stage for performing stage deployment update
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.stageIdentifier
+	 */
+	_getUpdatePrerequisites({deploymentName, stageIdentifier}) {
 		/**
 		 * @type Project
 		 */
@@ -930,19 +991,6 @@ class DeploymentService {
 
 		if (!project) {
 			throw new ServiceError({message: `project not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
-		}
-
-		/**
-		 * @type Deployment
-		 */
-		let deployment = this.getLastDeployment({band: DeploymentBand.RELEASE, name: deploymentName});
-
-		if (!deployment) {
-			throw new ServiceError({
-				message: `release deployment not found for ${deploymentName}`,
-				statusCode: StatusCode.NOT_FOUND,
-				code: ErrorCode.DEPLOYMENT_NOT_FOUND
-			})
 		}
 
 		/**
@@ -956,7 +1004,20 @@ class DeploymentService {
 			throw new ServiceError({message: `stage not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
 		}
 
-		await getInfraProviderInstance(project.type).resetDeploymentToRelease({project, deployment, stage: existingStage});
+		return {
+			project,
+			stage: existingStage
+		};
+	}
+
+	/**
+	 * @param {Deployment} deployment
+	 * @param {String} deploymentName
+	 */
+	_assertExistingDeployment(deployment, deploymentName) {
+		if (!deployment) {
+			throw new ServiceError({message: `deployment ${deploymentName} not found`, statusCode: StatusCode.NOT_FOUND});
+		}
 	}
 
 	getServerDeploymentMeta(band) {
@@ -987,3 +1048,16 @@ exports.DeploymentService = DeploymentService;
 exports.ErrorCode = ErrorCode;
 exports.DeploymentBand = DeploymentBand;
 exports.PullRequestStatus = PullRequestStatus;
+
+function semverCmp(a, b) {
+	a = semver.coerce(a);
+	b = semver.coerce(b);
+
+	if (semver.gt(a, b)) {
+		return 1;
+	}
+	if (semver.gt(b, a)) {
+		return -1;
+	}
+	return 0;
+}

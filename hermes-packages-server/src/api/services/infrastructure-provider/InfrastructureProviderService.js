@@ -33,6 +33,17 @@ module.exports = class InfrastructureProviderService {
 		throw new Error('not implemented');
 	}
 
+	/**
+	 * Promote release deployment to production
+	 * @param {Object} opt
+	 * @param {Stage} stage
+	 * @param {Project} project
+	 * @param {Deployment} deployment
+	 */
+	async promoteDeploymentToProduction({stage, project, deployment}) {
+		throw new Error('not implemented');
+	}
+
 	getServerDeploymentMeta(band) {
 		/**
 		 * @type DeploymentState[]

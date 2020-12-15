@@ -1,5 +1,4 @@
 const deploymentColl = require('../collections/deployment');
-const semver = require('semver');
 const {getSemverCmpFunction, validateBand, normalizeVersion} = require('../util/index');
 const {deploymentService, DeploymentBand} = require('../services/deployment');
 const {PullRequestService} = require('../services/pull-request');
@@ -15,7 +14,7 @@ const ErrorCode = {
 	DEPLOYMENT_NOT_FOUND: 'deployment_not_found'
 };
 
-const App = module.exports = {
+module.exports = {
 	canCreateDeployment: async function (req, res, next) {
 		try {
 			let deployment = {
@@ -196,7 +195,8 @@ const App = module.exports = {
 
 	getPullRequestDeploymentContext: async function (req, res, next) {
 		try {
-			let context = deploymentService.getPullRequestDeploymentContext();
+			let band = req.swagger.params.band.value;
+			let context = deploymentService.getPullRequestDeploymentContext(band);
 			res.sendData(context);
 		} catch (err) {
 			res.sendData(err);
@@ -275,7 +275,6 @@ const App = module.exports = {
 			let deploymentName = req.swagger.params.deploymentName.value;
 			let serverTag = req.swagger.params.serverTag.value;
 			let stageIdentifier = serverTag;
-
 
 			await deploymentService.resetDeploymentToRelease({deploymentName, stageIdentifier});
 
@@ -540,78 +539,10 @@ const App = module.exports = {
 			let version = req.swagger.params.version.value;
 			let serverTag = req.swagger.params.serverTag.value;
 
-			await App._promoteDeployment(deploymentName, version, serverTag);
+			await deploymentService.promoteDeploymentToProduction({deploymentName, version, stageIdentifier: serverTag});
 			res.sendData();
 		} catch (err) {
 			res.sendData(err);
 		}
-	},
-
-	_promoteDeployment: async function (deploymentName, version, serverTag) {
-		let band = DeploymentBand.RELEASE;
-
-		let deployment = deploymentColl.findOne({
-			band,
-			version,
-			name: deploymentName
-		});
-
-		if (!deployment) {
-			throw new ServiceError({
-				message: `deployment '${deploymentName}@${version}' not found`,
-				statusCode: StatusCode.NOT_FOUND,
-				code: ErrorCode.DEPLOYMENT_NOT_FOUND
-			});
-		}
-
-		let query = {
-			band,
-			isProduction: true,
-			name: deploymentName
-		};
-
-		let sort = getSemverCmpFunction('version', {asc: false});
-
-		let latestProdDeployment = deploymentColl.find(query, {sort, limit: 1})[0];
-
-		if (latestProdDeployment && latestProdDeployment.serverTags.includes(serverTag)) {
-			let cmpRes = semverCmp(latestProdDeployment.version, version);
-
-			if (cmpRes === 1) {
-				throw new Error(`unable to promote a lower version then '${latestProdDeployment.version}'`);
-			} else if (cmpRes === 0) {
-				throw new Error(`deployment ${deploymentName}@${version} is already promoted for server '${serverTag}'`);
-			}
-		}
-
-		deployment.isProduction = true;
-		deployment.serverTags = deployment.serverTags || []
-
-		if (!deployment.serverTags.includes(serverTag)) {
-			deployment.serverTags.push(serverTag);
-		}
-
-		deployment = deploymentService.updateDeployment(deployment);
-
-		deployment.band = 'production';
-
-		if (deployment.deployAsAwsLambdaFunction) {
-			await deploymentService.deployLambdaFunction(deployment, serverTag);
-		}
-
-		deploymentService.emitDeploymentInstall(deployment);
 	}
 };
-
-function semverCmp(a, b) {
-	a = semver.coerce(a);
-	b = semver.coerce(b);
-
-	if (semver.gt(a, b)) {
-		return 1;
-	}
-	if (semver.gt(b, a)) {
-		return -1;
-	}
-	return 0;
-}

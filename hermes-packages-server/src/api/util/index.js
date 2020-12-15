@@ -88,7 +88,9 @@ function stageIdentifierToStage(stageTag) {
  * @param {Deployment} deployment
  */
 function getGitTagNameByDeployment(deployment) {
-	let gitTag = normalizeVersion(deployment.version, deployment.band);
+	let band = deployment.band === 'production' ? 'release' : deployment.band;
+
+	let gitTag = normalizeVersion(deployment.version, band);
 
 	if (deployment.pullRequestMeta) {
 		let prMeta = deployment.pullRequestMeta

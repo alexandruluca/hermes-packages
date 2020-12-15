@@ -32,8 +32,6 @@ class OnPremProviderService extends InfrastructureProviderService {
 
 		deployment.serverTags = [stageIdentifier];
 
-		// if release => broadCasNewDeploymentAvailable
-		// if pull request => broadcastDeploymentInstall
 		this.emitDeploymentInstall(deployment);
 	}
 
@@ -58,6 +56,20 @@ class OnPremProviderService extends InfrastructureProviderService {
 			pullRequestMeta: deployment.pullRequestMeta
 		};
 		this.updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
+	}
+
+	/**
+	 * Promote release deployment to production
+	 * @param {Object} opt
+	 * @param {Stage} stage
+	 * @param {Project} project
+	 * @param {Deployment} deployment
+	 */
+	promoteDeploymentToProduction({stage, project, deployment}) {
+		deployment = JSON.parse(JSON.stringify(deployment));
+		deployment.band = DeploymentBand.PRODUCTION;
+
+		this.emitDeploymentInstall(deployment);
 	}
 
 	/**
