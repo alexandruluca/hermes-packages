@@ -1,3 +1,6 @@
+# migration sample
+
+```
 const deploymentColl = require('../../collections/deployment');
 const uuid = require('uuid');
 
@@ -12,5 +15,6 @@ module.exports = {
 			}
 			deploymentColl.update(deployment);
 		});
-	},
+	}
 };
+```
