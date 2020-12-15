@@ -1,3 +1,4 @@
+const uuid = require('uuid');
 const projectCollection = require('../../collections/project');
 const {ServiceError, StatusCode} = require('../../lib/error');
 const {getInstance: getInfraProviderInstance} = require('../../services/infrastructure-provider');
@@ -10,6 +11,10 @@ class ProjectService {
 		await this.validateProject(project);
 
 		let existingProject = projectCollection.findOne({name: project.name});
+
+		project.stages.forEach(stage => {
+			stage.id = uuid.v4();
+		});
 
 		if (existingProject) {
 			throw new ServiceError({

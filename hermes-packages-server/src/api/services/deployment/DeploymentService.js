@@ -11,8 +11,7 @@ const deploymentSequenceCollection = require('../../collections/deployment-seque
 const io = require('../../lib/io');
 const _ = require('lodash');
 const config = require('../../lib/config');
-const {getInstance: getInfraProviderInstance} = require('../infrastructure-provider');
-const {githubApi} = require('../../lib/github');
+const {getInstance: getInfraProviderInstance, getAllInstances: getAllInfraProviderInstances} = require('../infrastructure-provider');
 
 const ErrorCode = {
 	DEPLOYMENT_EXISTS: 'deployment_exists',
@@ -850,34 +849,6 @@ class DeploymentService {
 	}
 
 	/**
-	 *
-	 * @param {Deployment} deployment
-	 * @param {String} aliasName - lambda alias name
-	 */
-	async deployLambdaFunction(deployment, aliasName) {
-		util.validateRequiredParam(deployment, 'deployment');
-		util.validateRequiredParam(aliasName, 'aliasName');
-
-		let isDeploymentUploaded = await this.isDeploymentUploaded(deployment);
-		let deploymentName = this.getDeploymentName(deployment);
-
-		if (!isDeploymentUploaded) {
-			throw new ServiceError({
-				message: `deployment is not uploaded for '${deploymentName}'`,
-				statusCode: StatusCode.BAD_REQUEST
-			});
-		}
-
-		await awsLambdaService.deployLambdaFunction({
-			functionName: deployment.name,
-			s3FileName: deploymentName,
-			aliasName,
-			band: deployment.isProduction ? DeploymentBand.PRODUCTION : deployment.band,
-			deploymentVersion: deployment.version
-		});
-	}
-
-	/**
 	 * @returns DeploymentContext
 	 */
 	getPullRequestDeploymentContext() {
@@ -894,7 +865,8 @@ class DeploymentService {
 				context.connectedServers.push({
 					band: stage.band,
 					deploymentName: project.name,
-					tag: util.getStageIdentifier(stage)
+					tag: util.getStageIdentifier(stage),
+					stage
 				});
 			});
 			context.deploymentNames.push(project.name);
@@ -956,7 +928,30 @@ class DeploymentService {
 
 		let infraProviderService = getInfraProviderInstance(project.type);
 
-		infraProviderService.handleDeploymentInstall(existingStage, deployment, doneCallback);
+		await infraProviderService.handleDeploymentInstall(existingStage, project, deployment, doneCallback);
+	}
+
+	getServerDeploymentMeta(band) {
+		const lastReleaseDeployment = this.getLastDeploymentsMap('release');
+		const lastDevelopDeployment = this.getLastDeploymentsMap('develop');
+
+		let instances = getAllInfraProviderInstances();
+
+		let serverDeploymentList = instances.reduce((serverDeploymentList, instance) => {
+			serverDeploymentList.push(...instance.getServerDeploymentMeta(band));
+			return serverDeploymentList;
+		}, []);
+
+		serverDeploymentList.forEach(deployment => {
+			let name = deployment.deploymentName;
+			let lastDeployment = deployment.band === DeploymentBand.DEVELOP ? lastDevelopDeployment[name] : lastReleaseDeployment[name];
+
+			if (lastDeployment) {
+				deployment.lastVersion = util.denormalizeVersion(lastDeployment.version);
+			}
+		});
+
+		return serverDeploymentList;
 	}
 }
 

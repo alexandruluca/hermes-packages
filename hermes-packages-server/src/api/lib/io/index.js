@@ -3,7 +3,6 @@ const io = require('socket.io');
 const connectedClients = {};
 const WEB_CLIENT_ROOM_NAME = 'web-client';
 const logger = require('../logger');
-
 const Event = {
 	PACKAGE_UPDATER_CONNECTED: 'package-updater-connected',
 	APPLCATION_UPDATED: 'application-updated'

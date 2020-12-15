@@ -558,6 +558,11 @@
 				"description": "Install pull request deployment on a specific server",
 				"x-swagger-router-controller": "DeploymentController",
 				"operationId": "signalDeploymentInstall",
+				"security": [
+					{
+						"user-session": []
+					}
+				],
 				"parameters": [
 					{
 						"name": "deploymentName",

@@ -21,8 +21,11 @@ module.exports = Collection('project', {
 			"type": "array",
 			"items": {
 				"type": "object",
-				"required": ["name", "band"],
+				"required": ["id", "name", "band"],
 				"properties": {
+					"id": {
+						"type": "string"
+					},
 					"name": {
 						"type": "string"
 					},

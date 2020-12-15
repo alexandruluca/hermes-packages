@@ -51,6 +51,7 @@
 
 /**
   * @typedef {Object} Project
+  * @property {String} id
   * @property {String} name
   * @property {'on-premise' | 'aws'} type
   * @property {Stage[]} stages
@@ -58,6 +59,7 @@
 
 /**
   * @typedef {Object} Stage
+  * @property {String} id
   * @property {String} name
   * @property {'develop' | 'qa' | 'release' |'production'} band
   * @property {'lambda' | 's3' | null} resourceType
@@ -71,3 +73,10 @@
  * @property {String} band
  * @property {String} deploymentName
  */
+
+/**
+* @typedef {Object} DeploymentState
+* @property {String} projectId
+* @property {String} stageId
+* @property {String} deploymentId
+*/

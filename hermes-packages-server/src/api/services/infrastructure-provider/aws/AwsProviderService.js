@@ -6,6 +6,7 @@ const {getGitTagNameByDeployment} = require('../../../util');
 const {storageProvider} = require('../../../providers/storageProvider');
 const {lambdaService} = require('./LambdaService');
 const LambdaRuntimes = ['nodejs'];
+const {globalEventBusService} = require('../../event-bus/GlobalEventBusService');
 
 class AwsProviderService extends InfrastructureProviderService {
 	/**
@@ -99,15 +100,20 @@ class AwsProviderService extends InfrastructureProviderService {
 
 	/**
 	 * @param {Stage} stage
+	 * @param {Project} project
 	 * @param {Deployment} deployment
 	 * @param {Function} doneCallback
 	 */
-	async handleDeploymentInstall(stage, deployment, doneCallback) {
+	async handleDeploymentInstall(stage, project, deployment, doneCallback) {
 		logger.info('AWS::handleDeploymentInstall');
+
+		let uploadingS3PackageMessage = `github-release-package-stream`;
 
 		let gitTag = getGitTagNameByDeployment(deployment);
 		let s3FileName = `${deployment.name}/${stage.name}.zip`;
 		let readStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
+
+		globalEventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage);
 
 		let {writeStream, promise: uploadFinishedPromise} = await s3Service.uploadStream(s3FileName);
 
@@ -115,8 +121,17 @@ class AwsProviderService extends InfrastructureProviderService {
 
 		await uploadFinishedPromise;
 
-		let updateRegionalLambdas = stage.regions.map(region => {
-			return lambdaService.deployLambdaFunction({
+		globalEventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage, {isCompleted: true});
+
+		let updateRegionalLambdas = stage.regions.map(async (region) => {
+			let message = 'aws-lambda-update';
+			globalEventBusService.emitDeploymentStatusUpdate(message, {
+				data: {
+					resourceName: stage.resourceName + '-' + region,
+					gitTag
+				}
+			});
+			await lambdaService.deployLambdaFunction({
 				functionName: stage.resourceName,
 				region,
 				s3FileName,
@@ -124,9 +139,16 @@ class AwsProviderService extends InfrastructureProviderService {
 				deploymentVersion: deployment.version,
 				stage: 'green' // handle green/blue deployment in the future
 			});
+			globalEventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
 		});
 
 		await Promise.all(updateRegionalLambdas);
+
+		this.updateDeploymentState({
+			projectId: project.id,
+			stageId: stage.id,
+			deploymentId: deployment.id
+		})
 
 		doneCallback();
 	}

@@ -1,10 +1,9 @@
 const deploymentColl = require('../collections/deployment');
 const semver = require('semver');
-const {getSemverCmpFunction, validateBand, normalizeVersion, denormalizeVersion} = require('../util/index');
+const {getSemverCmpFunction, validateBand, normalizeVersion} = require('../util/index');
 const {deploymentService, DeploymentBand} = require('../services/deployment');
 const {PullRequestService} = require('../services/pull-request');
 const {ServiceError, StatusCode} = require('../lib/error');
-const io = require('../lib/io');
 const {githubApi} = require('../lib/github');
 const {JiraTaskStatus} = require('../lib/jira');
 const logger = require('../lib/logger');
@@ -307,19 +306,8 @@ const App = module.exports = {
 	getServerDeploymentMeta: function (req, res, next) {
 		try {
 			const band = req.swagger.params.band.value;
-			const serverDeploymentList = io.getServerDeploymentMeta(band);
 
-			const lastReleaseDeployment = deploymentService.getLastDeploymentsMap('release');
-			const lastDevelopDeployment = deploymentService.getLastDeploymentsMap('develop');
-
-			serverDeploymentList.forEach(deployment => {
-				let name = deployment.deploymentName;
-				let lastDeployment = deployment.band === DeploymentBand.DEVELOP ? lastDevelopDeployment[name] : lastReleaseDeployment[name];
-
-				if (lastDeployment) {
-					deployment.lastVersion = denormalizeVersion(lastDeployment.version);
-				}
-			});
+			let serverDeploymentList = deploymentService.getServerDeploymentMeta(band);
 
 			res.sendData(serverDeploymentList);
 		} catch (err) {

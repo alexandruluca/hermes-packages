@@ -88,6 +88,18 @@ class Collection {
 		return clone(obj);
 	}
 
+	upsert(query, obj) {
+		let existingObj = this.findOne(query);
+
+		if (existingObj) {
+			let fullObject = Object.assign(existingObj, obj);
+			this.update(fullObject);
+		} else {
+			let fullObject = Object.assign(query, obj);
+			this.insert(fullObject);
+		}
+	}
+
 	distinct(property, query) {
 		let docs = this.collection.find(query);
 

@@ -6,11 +6,11 @@ const deploymentSequenceCollection = require('../../collections/deployment-seque
 const logger = require('../../lib/logger');
 const {ServiceError, StatusCode} = require('../../lib/error');
 const {parseXml} = require('../../util/xml');
-const io = require('../../lib/io');
 const path = require('path');
 const config = require('../../lib/config');
 const CONFIG_XML_PATH = 'client/config.xml';
 const issueProvider = require('../../providers/issueProvider');
+const {globalEventBusService} = require('../event-bus/GlobalEventBusService');
 
 const EventType = {
 	JIRA_STATUS_UPDATE: 'jira-status-update',
@@ -54,19 +54,10 @@ class PullRequestService {
 	}
 
 	broadcastMessage(eventName, {data = null, isCompleted = false, failure = false} = {}) {
-		if (data) {
-			this.broadcastedEventData[eventName] = data;
-		}
-		data = data || this.broadcastedEventData[eventName];
-
-		return io.broadcastMessage('deployment-status-update', {
-			eventName,
+		return globalEventBusService.emitDeploymentStatusUpdate(eventName, {
 			data,
-			action: failure ? 'failure' : (isCompleted ? 'end' : 'start'),
-			issueNumber: this.issueNumber,
-			targetBranch: this.targetBranch,
-			sourceBranch: this.sourceBranch,
-			pullId: this.pullId
+			isCompleted,
+			failure
 		});
 	}
 
@@ -167,8 +158,8 @@ class PullRequestService {
 	 */
 	async handlePullRequestStatusUpdate({deployment, pullRequestStatus, userEmail}) {
 		/**
- 		* @type {Deployment} deploymentUpdate
- 		*/
+			* @type {Deployment} deploymentUpdate
+			*/
 		let deploymentUpdate = {
 			pullRequestMeta: {
 				status: pullRequestStatus
