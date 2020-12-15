@@ -107,32 +107,8 @@ module.exports = {
 		try {
 			let options = req.swagger.params.options.value;
 
-			let debug = require('debug')('debug:deployment-page');
-
-			debug('start get deployment page');
-
 			let page = deploymentService.getDeploymentsPage(options);
 			let deployments = page.items;
-
-			debug('end get deployment page');
-
-			/* let jiraIds = deployments.reduce((ids, deployment) => {
-				if (deployment.pullRequestMeta) {
-					let issueNumber = deployment.pullRequestMeta.issueNumber;
-
-					if (issueNumber === DeploymentBand.RELEASE || issueNumber === DeploymentBand.DEVELOP) {
-						let pullId = deployment.pullRequestMeta.pullId;
-						logger.warn(`invalid issueNumber found for ${deployment.name}@${deployment.version} pullId='${pullId}'`);
-						return ids;
-					}
-					ids.push(issueNumber);
-				}
-				return ids;
-			}, []); */
-
-			debug('start get jira status');
-			// let jiraTasks = await jiraApi.getIssueMap(jiraIds);
-			debug('end get jira status');
 
 			let promises = deployments.map(async (deployment) => {
 				let {url} = await deploymentService.getDownloadUrl(deployment);
@@ -141,14 +117,6 @@ module.exports = {
 				if (!deployment.pullRequestMeta) {
 					return;
 				}
-
-				/* let jiraTaskId = deployment.pullRequestMeta.issueNumber;
-				let jiraTask = jiraTasks[jiraTaskId];
-
-				if (jiraTask) {
-					deployment.jiraStatus = jiraTask.status;
-					deployment.transitionList = jiraTask.transitionList;
-				} */
 
 				deployment.jiraStatus = {id: 'To Do'};
 				deployment.transitionList = issueProvider.getTaskTransitionList();
@@ -187,7 +155,6 @@ module.exports = {
 			await Promise.all(promises);
 
 			res.sendData(page);
-			debug('deployment page send res');
 		} catch (err) {
 			res.sendData(err);
 		}

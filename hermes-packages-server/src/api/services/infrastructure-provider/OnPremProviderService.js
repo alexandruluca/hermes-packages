@@ -1,7 +1,8 @@
 const InfrastructureProviderService = require('./InfrastructureProviderService');
 const {eventBusService} = require('../event-bus/EventBusService');
 const {getStageIdentifier} = require('../../util');
-const {DeploymentBand} = require('../deployment/DeploymentService');
+const {DeploymentBand} = require('../deployment/const');
+const logger = require('../../lib/logger');
 
 class OnPremProviderService extends InfrastructureProviderService {
 	/**
@@ -28,7 +29,7 @@ class OnPremProviderService extends InfrastructureProviderService {
 			pullRequestMeta: deployment.pullRequestMeta
 		};
 
-		this.updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
+		this._updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
 
 		deployment.serverTags = [stageIdentifier];
 
@@ -55,7 +56,7 @@ class OnPremProviderService extends InfrastructureProviderService {
 			updateVersion: deployment.version,
 			pullRequestMeta: deployment.pullRequestMeta
 		};
-		this.updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
+		this._updateServerMeta({serverTags, deploymentName, band: DeploymentBand.QA}, update);
 	}
 
 	/**
@@ -68,7 +69,6 @@ class OnPremProviderService extends InfrastructureProviderService {
 	promoteDeploymentToProduction({stage, project, deployment}) {
 		deployment = JSON.parse(JSON.stringify(deployment));
 		deployment.band = DeploymentBand.PRODUCTION;
-
 		this.emitDeploymentInstall(deployment);
 	}
 
@@ -78,7 +78,6 @@ class OnPremProviderService extends InfrastructureProviderService {
 	 */
 	emitDeploymentInstall(deployment) {
 		eventBusService.emitDeploymentStatusUpdate('notify-package-updater-new-version', {isCompleted: true});
-		eventBusService.emitDeploymentStatusUpdate('package-updater-update-in-progress');
 		return eventBusService.emitMessage('install-deployment', deployment);
 	}
 
@@ -92,6 +91,19 @@ class OnPremProviderService extends InfrastructureProviderService {
 
 	getServerDeploymentMeta(band) {
 		return eventBusService.getServerDeploymentMeta(band);
+	}
+
+	/**
+	 * @param {Object} query
+	 * @param {String[]} query.serverTags
+	 * @param {String} query.deploymentName
+	 * @param {String} query.band
+	 * @param {Object} update
+	 * @param {String} update.version
+	 */
+	_updateServerMeta(query, update) {
+		logger.info('updating connected server clients meta info');
+		return eventBusService.updateServerMeta(query, update);
 	}
 }
 

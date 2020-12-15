@@ -12,18 +12,12 @@ const {eventBusService} = require('../event-bus/EventBusService');
 const _ = require('lodash');
 const config = require('../../lib/config');
 const {getInstance: getInfraProviderInstance, getAllInstances: getAllInfraProviderInstances} = require('../infrastructure-provider');
+const {DeploymentBand} = require('./const');
 
 const ErrorCode = {
 	DEPLOYMENT_EXISTS: 'deployment_exists',
 	DEPLOYMENT_NOT_FOUND: 'deployment_not_found',
 	DEPLOYMENT_ILLEGAL_STATE: 'deployment_illegal_state'
-};
-
-const DeploymentBand = {
-	DEVELOP: 'develop',
-	RELEASE: 'release',
-	PRODUCTION: 'production',
-	QA: 'qa'
 };
 
 const PullRequestStatus = {
@@ -832,19 +826,6 @@ class DeploymentService {
 	}
 
 	/**
-	 * @param {Object} query
-	 * @param {String[]} query.serverTags
-	 * @param {String} query.deploymentName
-	 * @param {String} query.band
-	 * @param {Object} update
-	 * @param {String} update.version
-	 */
-	updateServerMeta(query, update) {
-		logger.info('updating connected server clients meta info');
-		return eventBusService.updateServerMeta(query, update);
-	}
-
-	/**
 	 * @returns DeploymentContext
 	 */
 	getPullRequestDeploymentContext(band) {
@@ -958,8 +939,7 @@ class DeploymentService {
 			if (cmpRes === 1) {
 				throw new Error(`unable to promote a lower version then '${latestProdDeployment.version}'`);
 			} else if (cmpRes === 0) {
-				console.log('add again');
-				// throw new Error(`deployment ${deploymentName}@${version} is already promoted for server '${serverTag}'`);
+				throw new Error(`deployment ${deploymentName}@${version} is already promoted for server '${serverTag}'`);
 			}
 		}
 
@@ -1001,7 +981,7 @@ class DeploymentService {
 		let existingStage = project.stages.find(s => s.name === stage.name && s.band === stage.band);
 
 		if (!existingStage) {
-			throw new ServiceError({message: `stage not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
+			throw new ServiceError({message: `stage not found for name=${stageIdentifier}`, statusCode: StatusCode.NOT_FOUND});
 		}
 
 		return {

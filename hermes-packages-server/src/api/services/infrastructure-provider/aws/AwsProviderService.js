@@ -7,6 +7,7 @@ const {storageProvider} = require('../../../providers/storageProvider');
 const {lambdaService} = require('./LambdaService');
 const LambdaRuntimes = ['nodejs'];
 const {eventBusService} = require('../../event-bus/EventBusService');
+const {DeploymentBand} = require('../../deployment/const');
 
 class AwsProviderService extends InfrastructureProviderService {
 	/**
@@ -135,7 +136,7 @@ class AwsProviderService extends InfrastructureProviderService {
 				functionName: stage.resourceName,
 				region,
 				s3FileName,
-				band: stage.band === 'production' ? 'release' : stage.band,
+				band: stage.band === DeploymentBand.PRODUCTION ? DeploymentBand.RELEASE : stage.band,
 				deploymentVersion: deployment.version,
 				stage: 'green' // handle green/blue deployment in the future
 			});
