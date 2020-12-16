@@ -3,15 +3,24 @@ const config = require('../../../lib/config');
 const logger = require('../../../lib/logger');
 const awsConfig = config.awsDeployments;
 const stream = require('stream');
+const {getInstance} = require('..');
 
 const S3_REGION = awsConfig.defaultRegion;
 
-const s3Instance = new AWS.S3({
-	accessKeyId: awsConfig.accessKeyId,
-	secretAccessKey: awsConfig.secretAccessKey,
-	signatureVersion: 'v4',
-	region: S3_REGION
-});
+const s3Instance = getS3Instance(S3_REGION);
+
+/**
+ * @param {String} region
+ * @returns Aws.S3
+ */
+function getS3Instance(region) {
+	return new AWS.S3({
+		accessKeyId: awsConfig.accessKeyId,
+		secretAccessKey: awsConfig.secretAccessKey,
+		signatureVersion: 'v4',
+		region: region
+	});
+}
 
 const S3_BUCKET = awsConfig.bucket;
 const TTL = awsConfig.ttl || 60;
@@ -34,13 +43,33 @@ class S3Service {
 		});
 	}
 
-	async uploadStream(key) {
+	/**
+	 * @param {Object} opt
+	 * @param {String=} opt.bucket
+	 * @param {String} opt.key
+	 */
+	async uploadStream({bucket, key}) {
 		const pass = new stream.PassThrough();
 
 		return {
 			writeStream: pass,
-			promise: s3Instance.upload({Bucket: S3_BUCKET, Key: key, Body: pass}).promise()
+			promise: s3Instance.upload({Bucket: bucket || S3_BUCKET, Key: key, Body: pass}).promise()
 		};
+	}
+
+	/**
+	 * @param {Object} opt
+	 * @param {String=} opt.bucket
+	 */
+	async emptyBucket({bucket}) {
+		let {Contents} = await s3Instance.listObjects({Bucket: bucket}).promise();
+
+		return Promise.all(Contents.map(async (entry) => {
+			return s3Instance.deleteObject({
+				Bucket: bucket,
+				Key: entry.Key
+			}).promise();
+		}));
 	}
 
 	async getDownloadUrl(key) {
@@ -80,6 +109,14 @@ class S3Service {
 			}
 			return false;
 		}
+	}
+
+	/**
+	 * @param {String} bucketName
+	 * @param {String} region
+	 */
+	async isExistingBucket(bucketName, region) {
+		return getS3Instance(region).headBucket({Bucket: bucketName}).promise();
 	}
 }
 

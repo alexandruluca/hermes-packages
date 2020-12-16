@@ -8,6 +8,7 @@ const {lambdaService} = require('./LambdaService');
 const LambdaRuntimes = ['nodejs'];
 const {eventBusService} = require('../../event-bus/EventBusService');
 const {DeploymentBand} = require('../../deployment/const');
+const {s3DeploymentService} = require('./S3DeploymentService');
 
 class AwsProviderService extends InfrastructureProviderService {
 	/**
@@ -61,6 +62,7 @@ class AwsProviderService extends InfrastructureProviderService {
 	 * @param {Project} project
 	 */
 	async _validateExistingResources(project) {
+		console.log('validate');
 		await this._validateExistingLambdas(project);
 	}
 
@@ -71,21 +73,17 @@ class AwsProviderService extends InfrastructureProviderService {
 		let errors = [];
 
 		let validateResources = project.stages.map(async (stage) => {
-			let validateRegionalLambdas = stage.regions.map(async (region) => {
-				let lambda = await lambdaService.getLambda(stage.resourceName, region);
-
-				if (!lambda) {
-					errors.push(`Lambda function ${stage.resourceName}-${region} not found`);
-					return;
+			let validateRegionalResources = stage.regions.map(async (region) => {
+				let _errors = [];
+				console.log(stage);
+				if (stage.resourceType === 'lambda') {
+					_errors = await this._validateLambda(stage.resourceName, region);
+				} else if (stage.resourceType === 's3') {
+					_errors = await this._validateS3Bucket(stage.resourceName, region);
 				}
-
-				let runtime = lambda.Runtime.replace(/[0-9\\.x]+/gi, '');
-
-				if (stage.runtime !== runtime) {
-					errors.push(`Lambda function ${stage.resourceName}-${region} does not have required runtime ${stage.runtime}`);
-				}
+				errors.push(..._errors);
 			});
-			await Promise.all(validateRegionalLambdas);
+			await Promise.all(validateRegionalResources);
 		});
 
 		await Promise.all(validateResources);
@@ -100,6 +98,46 @@ class AwsProviderService extends InfrastructureProviderService {
 	}
 
 	/**
+	 * @param {Stage} stage
+	 * @param {String} region
+	 */
+	async _validateLambda(stage, region) {
+		let errors = [];
+		let lambda = await lambdaService.getLambda(stage.resourceName, region);
+
+		if (!lambda) {
+			errors.push(`Lambda function ${stage.resourceName}-${region} not found`);
+			return;
+		}
+
+		let runtime = lambda.Runtime.replace(/[0-9\\.x]+/gi, '');
+
+		if (stage.runtime !== runtime) {
+			errors.push(`Lambda function ${stage.resourceName}-${region} does not have required runtime ${stage.runtime}`);
+		}
+		return errors;
+	}
+
+	/**
+	 * @param {Stage} stage
+	 * @param {String} region
+	 */
+	async _validateS3Bucket(stage, region) {
+		let errors = [];
+
+		let exists = await s3Service.isExistingBucket(stage.resourceName + 'ss', region);
+
+		console.log('exists', exists);
+
+		if (!exists) {
+			errors.push(`s3 bucket ${stage.resourceName} not found`);
+			return;
+		}
+
+		return errors;
+	}
+
+	/**
 	 * @param {Object} opt
 	 * @param {Stage} opt.stage
 	 * @param {Project} opt.project
@@ -108,47 +146,78 @@ class AwsProviderService extends InfrastructureProviderService {
 	async handleDeploymentInstall({stage, project, deployment}) {
 		logger.info('AWS::handleDeploymentInstall');
 
-		let uploadingS3PackageMessage = `github-release-package-stream`;
-
 		let gitTag = getGitTagNameByDeployment(deployment);
-		let s3FileName = `${deployment.name}/${stage.name}.zip`;
-		let readStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
+		let deploymentReadStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
 
-		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage);
-
-		let {writeStream, promise: uploadFinishedPromise} = await s3Service.uploadStream(s3FileName);
-
-		readStream.pipe(writeStream);
-
-		await uploadFinishedPromise;
-
-		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage, {isCompleted: true});
-
-		let updateRegionalLambdas = stage.regions.map(async (region) => {
-			let message = 'aws-lambda-update';
+		let updateRegionalResources = stage.regions.map(async (region) => {
+			let message = `aws-${stage.resourceType}-update`;
 			eventBusService.emitDeploymentStatusUpdate(message, {
 				data: {
 					resourceName: stage.resourceName + '-' + region,
 					gitTag
 				}
 			});
-			await lambdaService.deployLambdaFunction({
-				functionName: stage.resourceName,
-				region,
-				s3FileName,
-				band: stage.band === DeploymentBand.PRODUCTION ? DeploymentBand.RELEASE : stage.band,
-				deploymentVersion: deployment.version,
-				stage: 'green' // handle green/blue deployment in the future
-			});
+			await this._handleResourceUpdate({stage, deployment, deploymentReadStream, region});
 			eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
 		});
 
-		await Promise.all(updateRegionalLambdas);
+		await Promise.all(updateRegionalResources);
 
 		this.updateDeploymentState({
 			projectId: project.id,
 			stageId: stage.id,
 			deploymentId: deployment.id
+		});
+	}
+
+	/**
+	 * @param {Object} opt
+	 * @param {Stage} opt.stage
+	 * @param {Deployment} opt.deployment
+	 * @param {Stream} opt.deploymentReadStream
+	 * @param {string} opt.region
+	 */
+	_handleResourceUpdate({stage, deployment, deploymentReadStream, region}) {
+		let opt = {
+			stage,
+			deployment,
+			deploymentReadStream,
+			region
+		};
+		if (stage.resourceType === 'lambda') {
+			return this._handleLambdaResourceUpdate(opt);
+		} else if (stage.resourceType === 's3') {
+			return s3DeploymentService.handleDeploymentUpdate(opt);
+		}
+	}
+
+	/**
+	 * @param {Object} opt
+	 * @param {Stage} opt.stage
+	 * @param {Deployment} opt.deployment
+	 * @param {Stream} opt.deploymentReadStream
+	 * @param {string} opt.region
+	 */
+	async _handleLambdaResourceUpdate({stage, deployment, deploymentReadStream, region}) {
+		let s3DeploymentFileName = `${deployment.name}/${stage.name}.zip`;
+		let uploadingS3PackageMessage = `github-release-package-stream`;
+		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage);
+
+		let {writeStream, promise: uploadFinishedPromise} = await s3Service.uploadStream({key: s3DeploymentFileName});
+
+		deploymentReadStream.pipe(writeStream);
+
+		await uploadFinishedPromise;
+
+		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage, {isCompleted: true});
+
+		await lambdaService.deployLambdaFunction({
+			functionName: stage.resourceName,
+			region,
+			s3FileName: s3DeploymentFileName,
+			band: stage.band === DeploymentBand.PRODUCTION ? DeploymentBand.RELEASE : stage.band,
+			deploymentVersion: deployment.version,
+			stage: 'green' // handle green/blue deployment in the future
 		});
 	}
 
