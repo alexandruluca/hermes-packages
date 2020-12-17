@@ -121,6 +121,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _deployment_deployment_list_deployment_list_rc_component__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./deployment/deployment-list/deployment-list-rc.component */ "./src/app/deployment/deployment-list/deployment-list-rc.component.ts");
 /* harmony import */ var _ngx_translate_core__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @ngx-translate/core */ "./node_modules/@ngx-translate/core/fesm5/ngx-translate-core.js");
 /* harmony import */ var _ngx_translate_http_loader__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @ngx-translate/http-loader */ "./node_modules/@ngx-translate/http-loader/fesm5/ngx-translate-http-loader.js");
+/* harmony import */ var _project_project_list_project_list_component__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./project/project-list/project-list.component */ "./src/app/project/project-list/project-list.component.ts");
+/* harmony import */ var _project_project_module__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./project/project.module */ "./src/app/project/project.module.ts");
+
+
 
 
 
@@ -150,6 +154,7 @@ function HttpLoaderFactory(httpClient) {
     return new _ngx_translate_http_loader__WEBPACK_IMPORTED_MODULE_19__["TranslateHttpLoader"](httpClient);
 }
 var appRoutes = [
+    { path: 'projects', component: _project_project_list_project_list_component__WEBPACK_IMPORTED_MODULE_20__["ProjectListComponent"], canActivate: [_authorization_login_guard__WEBPACK_IMPORTED_MODULE_11__["LoginGuard"]] },
     { path: 'deployments/pull-request', component: _deployment_deployment_list_deployment_list_pr_component__WEBPACK_IMPORTED_MODULE_16__["DeploymentListPullRequestComponent"], canActivate: [_authorization_login_guard__WEBPACK_IMPORTED_MODULE_11__["LoginGuard"]] },
     { path: 'deployments/release-candidate', component: _deployment_deployment_list_deployment_list_rc_component__WEBPACK_IMPORTED_MODULE_17__["DeploymentListReleaseCandidateComponent"], canActivate: [_authorization_login_guard__WEBPACK_IMPORTED_MODULE_11__["LoginGuard"]] },
     { path: 'deployments/:deploymentType', component: _deployment_deployment_list_deployment_list_component__WEBPACK_IMPORTED_MODULE_10__["DeploymentListComponent"], canActivate: [_authorization_login_guard__WEBPACK_IMPORTED_MODULE_11__["LoginGuard"]] },
@@ -182,6 +187,7 @@ var AppModule = /** @class */ (function () {
                 /* Custom */
                 _authorization_authentication_module__WEBPACK_IMPORTED_MODULE_6__["AuthenticationModule"],
                 _deployment_deployment_module__WEBPACK_IMPORTED_MODULE_9__["DeploymentModule"],
+                _project_project_module__WEBPACK_IMPORTED_MODULE_21__["ProjectModule"],
                 _server_state_server_state_module__WEBPACK_IMPORTED_MODULE_13__["ServerStateModule"]
             ],
             providers: [
@@ -675,6 +681,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var primeng_radiobutton__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! primeng/radiobutton */ "./node_modules/primeng/radiobutton.js");
 /* harmony import */ var primeng_radiobutton__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(primeng_radiobutton__WEBPACK_IMPORTED_MODULE_14__);
 /* harmony import */ var _ngx_translate_core__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @ngx-translate/core */ "./node_modules/@ngx-translate/core/fesm5/ngx-translate-core.js");
+/* harmony import */ var primeng_chips__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! primeng/chips */ "./node_modules/primeng/chips.js");
+/* harmony import */ var primeng_chips__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(primeng_chips__WEBPACK_IMPORTED_MODULE_16__);
+
 
 
 
@@ -718,7 +727,8 @@ var PackageCommonModule = /** @class */ (function () {
                 primeng_dialog__WEBPACK_IMPORTED_MODULE_13__["DialogModule"],
                 primeng_radiobutton__WEBPACK_IMPORTED_MODULE_14__["RadioButtonModule"],
                 _angular_common_http__WEBPACK_IMPORTED_MODULE_3__["HttpClientModule"],
-                _ngx_translate_core__WEBPACK_IMPORTED_MODULE_15__["TranslateModule"]
+                _ngx_translate_core__WEBPACK_IMPORTED_MODULE_15__["TranslateModule"],
+                primeng_chips__WEBPACK_IMPORTED_MODULE_16__["ChipsModule"]
             ]
         })
     ], PackageCommonModule);
@@ -1140,7 +1150,7 @@ var DeploymentListReleaseCandidateComponent = /** @class */ (function (_super) {
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<p-toast [style]=\"{marginTop: '80px'}\"></p-toast>\n\n<p-toast position=\"center\" key=\"c\" [modal]=\"true\" [baseZIndex]=\"5000\">\n    <ng-template let-message pTemplate=\"message\">\n        <div style=\"text-align: center\">\n            <i class=\"pi pi-exclamation-triangle\" style=\"font-size: 3em\"></i>\n            <h3>{{message.summary}}</h3>\n            <p>{{message.detail}}</p>\n        </div>\n        <div class=\"ui-g ui-fluid\">\n            <div class=\"ui-g-6\">\n                <button type=\"button\" pButton label=\"Yes\" class=\"ui-button-success\"></button>\n            </div>\n            <div class=\"ui-g-6\">\n                <button type=\"button\" pButton label=\"No\" class=\"ui-button-secondary\"></button>\n            </div>\n        </div>\n    </ng-template>\n</p-toast>\n\n<p-table #dt [columns]=\"cols\" [value]=\"deployments\" [lazy]=\"true\" (onLazyLoad)=\"loadDeployments($event)\"\n[tableStyle]=\"{'table-layout':'auto'}\"\n    [totalRecords]=\"totalDeployments\" [loading]=\"loadingDeployments\" [rowsPerPageOptions]=\"[10,20,30]\"\n    [paginator]=\"true\" [rows]=\"10\" dataKey=\"id\" editMode=\"row\" >\n  <ng-template pTemplate=\"caption\" >\n    <div style=\"text-align: right\" *ngIf=\"!isFilteredMode\">\n        <div class=\"ui-g-12\">\n        <h3 class=\"first\">Deployment type</h3>\n        <p-dropdown [options]=\"deploymentTypes\"\n        (onChange)=\"onPullRequestFilterChanged($event.value)\"></p-dropdown>\n      </div>\n    </div>\n    <div style=\"text-align: right\">\n      <div class=\"ui-g-12\">\n        <h3 class=\"first\">Project</h3>\n        <p-dropdown [options]=\"projectOptions\" (onChange)=\"loadDeploymentsWithFilter('projectKey', $event.value)\"></p-dropdown>\n      </div>\n    </div>\n  </ng-template>\n  <ng-template pTemplate=\"header\" let-columns>\n    <tr>\n      <th *ngFor=\"let col of columns\" [pSortableColumn]=\"col.isSortable && col.field\">\n        {{col.header}}\n        <p-sortIcon [field]=\"col.field\" ariaLabel=\"Activate to sort\" *ngIf=\"col.isSortable\"\n          ariaLabelDesc=\"Activate to sort in descending order\" ariaLabelAsc=\"Activate to sort in ascending order\">\n        </p-sortIcon>\n      </th>\n      <th class=\"edit-column\"></th>\n    </tr>\n    <tr>\n      <th *ngFor=\"let col of columns\" [ngSwitch]=\"col.field\">\n          <p-dropdown *ngSwitchCase=\"'name'\" [options]=\"deploymentNameOptions\" [style]=\"{'width':'100%'}\"\n          (onChange)=\"loadDeploymentsWithFilter(col.field, $event.value)\"></p-dropdown>\n      </th>\n      <th></th>\n    </tr>\n  </ng-template>\n\n\n  <ng-template pTemplate=\"body\" let-rowData let-ri=\"rowIndex\" let-editing=\"editing\">\n    <tr [pEditableRow]=\"rowData\">\n      <td  *ngFor=\"let col of cols;\">\n        <div *ngIf=\"col.field !== 'jiraStatus.name'\">\n            <div [innerHTML]=\"getCellValue(rowData, col)\">\n            </div>\n        </div>\n        <p-cellEditor *ngIf=\"col.field === 'jiraStatus.name'\">\n          <ng-template pTemplate=\"input\">\n            <p-dropdown [options]=\"rowData.presentationTransitionList\" [style]=\"{'width':'100%'}\" [(ngModel)]=\"rowData.jiraStatus.id\">\n\n            </p-dropdown>\n          </ng-template>\n          <ng-template pTemplate=\"output\">\n            {{getCellValue(rowData, col)}}\n          </ng-template>\n        </p-cellEditor>\n      </td>\n\n      <td style=\"text-align:center\">\n        <div *ngIf=\"rowData.$meta.$isEditable\" style=\"display: inline-block\">\n          <button *ngIf=\"!editing\" type=\"button\" pInitEditableRow class=\"pi pi-pencil\"\n            (click)=\"editing = true && onRowEditInit(rowData)\"></button>\n          <button *ngIf=\"editing\" type=\"button\" pSaveEditableRow class=\"pi pi-check\" style=\"margin-right: .5em\"\n            (click)=\"onRowEditSave(rowData)\"></button>\n          <button *ngIf=\"editing\" type=\"button\" pCancelEditableRow class=\"pi pi-times\"\n            (click)=\"editing = false && onRowEditCancel(rowData, ri)\"></button>\n        </div>\n        <button *ngIf=\"rowData.$meta.$isInstallable && !editing\" type=\"button\" class=\"pi pi-cloud-upload\"\n            (click)=\"showInstallDeploymentDialog(rowData)\"></button>\n      </td>\n    </tr>\n  </ng-template>\n</p-table>\n\n<app-qa-server-state *ngIf=\"showServerState\"></app-qa-server-state>\n\n<p-dialog\n    header=\"{{installableDeployment?.pullRequestMeta ? 'Install deployment' : 'Promote to production'}}\"\n    [(visible)]=\"displayDialog\" [responsive]=\"true\" showEffect=\"fade\" [modal]=\"true\" [style]=\"{width: '60%'}\">\n    <div class=\"ui-g ui-fluid\" *ngIf=\"installableDeployment\">\n        <div class=\"ui-g-12\">\n          <div class=\"ui-g-4\">\n            <label for=\"serverTag\">Server tag</label>\n          </div>\n          <div class=\"ui-g-8\">\n            <p-dropdown [options]=\"deploymentServerTagOptions\" [(ngModel)]=\"targetInstallServerTag\">\n            </p-dropdown>\n          </div>\n        </div>\n      <div class=\"ui-g-12\">\n        <div class=\"ui-g-4\">\n          <label for=\"vin\">Name:</label>\n        </div>\n        <div class=\"ui-g-8\">\n          {{installableDeployment.name}}\n        </div>\n      </div>\n      <div class=\"ui-g-12\">\n        <div class=\"ui-g-4\">\n          <label for=\"vin\">Version:</label>\n        </div>\n        <div class=\"ui-g-8\">\n          {{installableDeployment.version}}\n        </div>\n      </div>\n     <div *ngIf=\"installableDeployment.pullRequestMeta\">\n        <div class=\"ui-g-12\">\n            <div class=\"ui-g-4\">\n              <label for=\"vin\">Source branch:</label>\n            </div>\n            <div class=\"ui-g-8\">\n              {{installableDeployment.pullRequestMeta.sourceBranch}}\n            </div>\n          </div>\n          <div class=\"ui-g-12\">\n              <div class=\"ui-g-4\">\n                <label for=\"vin\">Target branch:</label>\n              </div>\n              <div class=\"ui-g-8\">\n                {{installableDeployment.pullRequestMeta.targetBranch}}\n              </div>\n            </div>\n          <div class=\"ui-g-12\">\n            <div class=\"ui-g-4\">\n              <label for=\"vin\">Pull request link:</label>\n            </div>\n            <div class=\"ui-g-8\">\n              {{installableDeployment.pullRequestMeta.pullLink}}\n            </div>\n          </div>\n     </div>\n    </div>\n    <p-footer>\n        <div class=\"ui-dialog-buttonpane ui-helper-clearfix\">\n            <button\n              type=\"button\" pButton icon=\"pi pi-check\" (click)=\"signalDeploymentInstall()\"\n              label=\"{{installableDeployment?.pullRequestMeta ? 'Install' : 'Promote'}}\">\n            </button>\n        </div>\n    </p-footer>\n</p-dialog>\n\n<app-deployment-progress-indicator [deployment]=\"doneTransitionedDeployment\" (closed)=\"onProgressIndicatorClosed()\">\n\n</app-deployment-progress-indicator>\n\n<app-loading-mask></app-loading-mask>\n"
+module.exports = "<p-toast [style]=\"{marginTop: '80px'}\"></p-toast>\n\n<p-toast position=\"center\" key=\"c\" [modal]=\"true\" [baseZIndex]=\"5000\">\n  <ng-template let-message pTemplate=\"message\">\n    <div style=\"text-align: center\">\n      <i class=\"pi pi-exclamation-triangle\" style=\"font-size: 3em\"></i>\n      <h3>{{message.summary}}</h3>\n      <p>{{message.detail}}</p>\n    </div>\n    <div class=\"ui-g ui-fluid\">\n      <div class=\"ui-g-6\">\n        <button type=\"button\" pButton label=\"Yes\" class=\"ui-button-success\"></button>\n      </div>\n      <div class=\"ui-g-6\">\n        <button type=\"button\" pButton label=\"No\" class=\"ui-button-secondary\"></button>\n      </div>\n    </div>\n  </ng-template>\n</p-toast>\n\n<p-table #dt [columns]=\"cols\" [value]=\"deployments\" [lazy]=\"true\" (onLazyLoad)=\"loadDeployments($event)\"\n  [tableStyle]=\"{'table-layout':'auto'}\" [totalRecords]=\"totalDeployments\" [loading]=\"loadingDeployments\"\n  [rowsPerPageOptions]=\"[10,20,30]\" [paginator]=\"true\" [rows]=\"10\" dataKey=\"id\" editMode=\"row\">\n  <ng-template pTemplate=\"caption\">\n    <div style=\"text-align: right\" *ngIf=\"!isFilteredMode\">\n      <div class=\"ui-g-12\">\n        <h3 class=\"first\">Deployment type</h3>\n        <p-dropdown [options]=\"deploymentTypes\" (onChange)=\"onPullRequestFilterChanged($event.value)\"></p-dropdown>\n      </div>\n    </div>\n    <div style=\"text-align: right\">\n      <div class=\"ui-g-12\">\n        <h3 class=\"first\">Project</h3>\n        <p-dropdown [options]=\"projectOptions\" (onChange)=\"loadDeploymentsWithFilter('projectKey', $event.value)\">\n        </p-dropdown>\n      </div>\n    </div>\n  </ng-template>\n  <ng-template pTemplate=\"header\" let-columns>\n    <tr>\n      <th *ngFor=\"let col of columns\" [pSortableColumn]=\"col.isSortable && col.field\">\n        {{col.header}}\n        <p-sortIcon [field]=\"col.field\" ariaLabel=\"Activate to sort\" *ngIf=\"col.isSortable\"\n          ariaLabelDesc=\"Activate to sort in descending order\" ariaLabelAsc=\"Activate to sort in ascending order\">\n        </p-sortIcon>\n      </th>\n      <th class=\"edit-column\"></th>\n    </tr>\n    <tr>\n      <th *ngFor=\"let col of columns\" [ngSwitch]=\"col.field\">\n        <p-dropdown *ngSwitchCase=\"'name'\" [options]=\"deploymentNameOptions\" [style]=\"{'width':'100%'}\"\n          (onChange)=\"loadDeploymentsWithFilter(col.field, $event.value)\"></p-dropdown>\n      </th>\n      <th></th>\n    </tr>\n  </ng-template>\n\n\n  <ng-template pTemplate=\"body\" let-rowData let-ri=\"rowIndex\" let-editing=\"editing\">\n    <tr [pEditableRow]=\"rowData\">\n      <td *ngFor=\"let col of cols;\">\n        <div *ngIf=\"col.field !== 'jiraStatus.name'\">\n          <div [innerHTML]=\"getCellValue(rowData, col)\">\n          </div>\n        </div>\n        <p-cellEditor *ngIf=\"col.field === 'jiraStatus.name'\">\n          <ng-template pTemplate=\"input\">\n            <p-dropdown [options]=\"rowData.presentationTransitionList\" [style]=\"{'width':'100%'}\"\n              [(ngModel)]=\"rowData.jiraStatus.id\">\n\n            </p-dropdown>\n          </ng-template>\n          <ng-template pTemplate=\"output\">\n            {{getCellValue(rowData, col)}}\n          </ng-template>\n        </p-cellEditor>\n      </td>\n\n      <td style=\"text-align:center\">\n        <div *ngIf=\"rowData.$meta.$isEditable\" style=\"display: inline-block\">\n          <button *ngIf=\"!editing\" type=\"button\" pInitEditableRow class=\"pi pi-pencil\"\n            (click)=\"editing = true && onRowEditInit(rowData)\"></button>\n          <button *ngIf=\"editing\" type=\"button\" pSaveEditableRow class=\"pi pi-check\" style=\"margin-right: .5em\"\n            (click)=\"onRowEditSave(rowData)\"></button>\n          <button *ngIf=\"editing\" type=\"button\" pCancelEditableRow class=\"pi pi-times\"\n            (click)=\"editing = false && onRowEditCancel(rowData, ri)\"></button>\n        </div>\n        <button *ngIf=\"rowData.$meta.$isInstallable && !editing\" type=\"button\" class=\"pi pi-cloud-upload\"\n          (click)=\"showInstallDeploymentDialog(rowData)\"></button>\n      </td>\n    </tr>\n  </ng-template>\n</p-table>\n\n<app-qa-server-state *ngIf=\"showServerState\"></app-qa-server-state>\n\n<p-dialog *ngIf=\"displayDialog\"\n  header=\"{{installableDeployment?.pullRequestMeta ? 'Install deployment' : 'Promote to production'}}\"\n  [(visible)]=\"displayDialog\" [responsive]=\"true\" showEffect=\"fade\" [modal]=\"true\" [style]=\"{width: '60%'}\">\n  <div class=\"ui-g ui-fluid\" *ngIf=\"installableDeployment\">\n    <div class=\"ui-g-12\">\n      <div class=\"ui-g-4\">\n        <label for=\"serverTag\">Server tag</label>\n      </div>\n      <div class=\"ui-g-8\">\n        <p-dropdown [options]=\"deploymentServerTagOptions\" [(ngModel)]=\"targetInstallServerTag\">\n        </p-dropdown>\n      </div>\n    </div>\n\n    <div *ngIf=\"stage\" style=\"width: 100%;\">\n      <div class=\"ui-g-12\">\n        <div class=\"ui-g-4\">\n          <label>Resource</label>\n        </div>\n        <div class=\"ui-g-8\" *ngIf=\"stage.resourceName\">\n          {{stage.resourceName}} [{{stage.resourceType}}] [{{stage.regions.join(', ')}}]\n        </div>\n      </div>\n    </div>\n\n    <div class=\"ui-g-12\">\n      <div class=\"ui-g-4\">\n        <label for=\"vin\">Name:</label>\n      </div>\n      <div class=\"ui-g-8\">\n        {{installableDeployment.name}}\n      </div>\n    </div>\n    <div class=\"ui-g-12\">\n      <div class=\"ui-g-4\">\n        <label for=\"vin\">Version:</label>\n      </div>\n      <div class=\"ui-g-8\">\n        {{installableDeployment.version}}\n      </div>\n    </div>\n    <div *ngIf=\"installableDeployment.pullRequestMeta\" style=\"width: 100%;\">\n      <div class=\"ui-g-12\">\n        <div class=\"ui-g-4\">\n          <label for=\"vin\">Source branch:</label>\n        </div>\n        <div class=\"ui-g-8\">\n          {{installableDeployment.pullRequestMeta.sourceBranch}}\n        </div>\n      </div>\n      <div class=\"ui-g-12\">\n        <div class=\"ui-g-4\">\n          <label for=\"vin\">Target branch:</label>\n        </div>\n        <div class=\"ui-g-8\">\n          {{installableDeployment.pullRequestMeta.targetBranch}}\n        </div>\n      </div>\n      <div class=\"ui-g-12\">\n        <div class=\"ui-g-4\">\n          <label for=\"vin\">Pull request link:</label>\n        </div>\n        <div class=\"ui-g-8\">\n          {{installableDeployment.pullRequestMeta.pullLink}}\n        </div>\n      </div>\n    </div>\n    <div class=\"ui-g-12\">\n      <app-deployment-progress-indicator></app-deployment-progress-indicator>\n    </div>\n  </div>\n\n  <p-footer>\n    <div class=\"ui-dialog-buttonpane ui-helper-clearfix\">\n      <button type=\"button\" pButton icon=\"pi pi-check\" (click)=\"signalDeploymentInstall()\" [disabled]=\"updateInProgress\"\n        label=\"{{installableDeployment?.pullRequestMeta ? 'Install' : 'Promote'}}\">\n      </button>\n      <button type=\"button\" pButton icon=\"pi\" (click)=\"closeDialog()\" [disabled]=\"updateInProgress\"\n        label=\"{{updateInitialized ? 'OK' :'Cancel'}}\">\n      </button>\n    </div>\n  </p-footer>\n</p-dialog>\n\n<app-deployment-progress-indicator-dialog [deployment]=\"doneTransitionedDeployment\"\n  (closed)=\"onProgressIndicatorClosed()\">\n\n</app-deployment-progress-indicator-dialog>\n\n<app-loading-mask></app-loading-mask>\n"
 
 /***/ }),
 
@@ -1151,7 +1161,7 @@ module.exports = "<p-toast [style]=\"{marginTop: '80px'}\"></p-toast>\n\n<p-toas
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = ".edit-column {\n  width: 8em; }\n\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9sdWNhYWxleGFuZHJ1L3dvcmtzcGFjZS90ZXJyaWEvaGVybWVzLXBhY2thZ2VzL2hlcm1lcy1wYWNrYWdlcy13d3cvc3JjL2FwcC9kZXBsb3ltZW50L2RlcGxveW1lbnQtbGlzdC9kZXBsb3ltZW50LWxpc3QuY29tcG9uZW50LnNjc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7RUFDRSxVQUFVLEVBQUEiLCJmaWxlIjoic3JjL2FwcC9kZXBsb3ltZW50L2RlcGxveW1lbnQtbGlzdC9kZXBsb3ltZW50LWxpc3QuY29tcG9uZW50LnNjc3MiLCJzb3VyY2VzQ29udGVudCI6WyIuZWRpdC1jb2x1bW4ge1xuICB3aWR0aDogOGVtO1xufVxuIl19 */"
+module.exports = ".edit-column {\n  width: 8em; }\n\n.ui-g-4, .ui-g-12 {\n  padding: .3em; }\n\n.ui-g-8 {\n  padding: 0; }\n\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9sdWNhYWxleGFuZHJ1L3dvcmtzcGFjZS90ZXJyaWEvaGVybWVzLXBhY2thZ2VzL2hlcm1lcy1wYWNrYWdlcy13d3cvc3JjL2FwcC9kZXBsb3ltZW50L2RlcGxveW1lbnQtbGlzdC9kZXBsb3ltZW50LWxpc3QuY29tcG9uZW50LnNjc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7RUFDRSxVQUFVLEVBQUE7O0FBR1o7RUFDRSxhQUFhLEVBQUE7O0FBR2Y7RUFDRSxVQUFVLEVBQUEiLCJmaWxlIjoic3JjL2FwcC9kZXBsb3ltZW50L2RlcGxveW1lbnQtbGlzdC9kZXBsb3ltZW50LWxpc3QuY29tcG9uZW50LnNjc3MiLCJzb3VyY2VzQ29udGVudCI6WyIuZWRpdC1jb2x1bW4ge1xuICB3aWR0aDogOGVtO1xufVxuXG4udWktZy00LCAudWktZy0xMiB7XG4gIHBhZGRpbmc6IC4zZW07XG59XG5cbi51aS1nLTgge1xuICBwYWRkaW5nOiAwO1xufVxuIl19 */"
 
 /***/ }),
 
@@ -1190,6 +1200,8 @@ var DeploymentType;
 var DeploymentListComponent = /** @class */ (function () {
     function DeploymentListComponent(deploymentService, messageService) {
         this.loadingDeployments = true;
+        this.updateInProgress = false;
+        this.updateInitialized = false;
         this.deploymentTypes = [
             { label: 'PULL REQUEST', value: DeploymentType.PULL_REQUEST },
             { label: 'RELEASE CANDIDATE', value: DeploymentType.RELEASE_CANDIDATE }
@@ -1358,21 +1370,42 @@ var DeploymentListComponent = /** @class */ (function () {
         this.cols = _ColumnFactory__WEBPACK_IMPORTED_MODULE_5__["ColumnFactory"].getColumns(columnMode);
     };
     DeploymentListComponent.prototype.showInstallDeploymentDialog = function (deployment) {
+        var _this = this;
         this.displayDialog = true;
         this.installableDeployment = deployment;
         var servers = this.deploymentContext.connectedServers.filter(function (server) {
-            return server.deploymentMeta.some(function (_deployment) { return _deployment.deploymentName === deployment.name; });
+            return server.band === _this.installBand;
         });
+        console.log(servers);
         this.deploymentServerTagOptions = servers.reduce(function (tags, server) {
             tags.push({
                 value: server.tag,
-                label: server.tag
+                label: server.tag,
+                stage: server.stage
             });
             return tags;
         }, []);
         if (this.deploymentServerTagOptions[0]) {
             this.targetInstallServerTag = this.deploymentServerTagOptions[0].value;
         }
+    };
+    Object.defineProperty(DeploymentListComponent.prototype, "stage", {
+        get: function () {
+            var _this = this;
+            if (!this.deploymentServerTagOptions) {
+                return;
+            }
+            var server = this.deploymentServerTagOptions.find(function (s) {
+                return s.value === _this.targetInstallServerTag;
+            });
+            return server && server.stage;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    DeploymentListComponent.prototype.closeDialog = function () {
+        this.displayDialog = false;
+        this.updateInitialized = false;
     };
     DeploymentListComponent.prototype.signalDeploymentInstall = function () {
         return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {
@@ -1381,6 +1414,8 @@ var DeploymentListComponent = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         isPullRequest = this.installableDeployment.pullRequestMeta;
+                        this.updateInProgress = true;
+                        this.updateInitialized = true;
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 6, 7, 8]);
@@ -1388,7 +1423,7 @@ var DeploymentListComponent = /** @class */ (function () {
                         return [4 /*yield*/, this.deploymentService.signalDeploymentInstall({
                                 deploymentName: this.installableDeployment.name,
                                 pullId: this.installableDeployment.pullRequestMeta.pullId,
-                                serverTags: [this.targetInstallServerTag]
+                                stageIdentifier: this.targetInstallServerTag
                             })];
                     case 2:
                         _a.sent();
@@ -1407,7 +1442,7 @@ var DeploymentListComponent = /** @class */ (function () {
                         this.messageService.add({ severity: 'error', summary: err_1.message, detail: err_1.message });
                         return [3 /*break*/, 8];
                     case 7:
-                        this.displayDialog = false;
+                        this.updateInProgress = false;
                         return [7 /*endfinally*/];
                     case 8: return [2 /*return*/];
                 }
@@ -1446,6 +1481,113 @@ var DeploymentListComponent = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.css":
+/*!*************************************************************************************************************!*\
+  !*** ./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.css ***!
+  \*************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiIsImZpbGUiOiJzcmMvYXBwL2RlcGxveW1lbnQvZGVwbG95bWVudC1wcm9ncmVzcy1pbmRpY2F0b3ItZGlhbG9nL2RlcGxveW1lbnQtcHJvZ3Jlc3MtaW5kaWNhdG9yLmNvbXBvbmVudC5jc3MifQ== */"
+
+/***/ }),
+
+/***/ "./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.html":
+/*!**************************************************************************************************************!*\
+  !*** ./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.html ***!
+  \**************************************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "<p-dialog *ngIf=\"deployment\"\n    header=\"{{deployment.pullRequestMeta.issueNumber}}/{{deployment.pullRequestMeta.pullId}}\"\n    [visible]=\"true\" [responsive]=\"true\" showEffect=\"fade\" [modal]=\"true\" [style]=\"{width: '60%'}\">\n    <app-deployment-progress-indicator></app-deployment-progress-indicator>\n    <p-footer>\n        <div class=\"ui-dialog-buttonpane ui-helper-clearfix\">\n            <button\n              type=\"button\" pButton (click)=\"closeDialog()\"\n              label=\"Ok\">\n            </button>\n        </div>\n    </p-footer>\n</p-dialog>\n"
+
+/***/ }),
+
+/***/ "./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.ts":
+/*!************************************************************************************************************!*\
+  !*** ./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.ts ***!
+  \************************************************************************************************************/
+/*! exports provided: DeploymentProgressIndicatorDialogComponent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DeploymentProgressIndicatorDialogComponent", function() { return DeploymentProgressIndicatorDialogComponent; });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _deployment_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../deployment.service */ "./src/app/deployment/deployment.service.ts");
+
+
+
+
+var DeploymentProgressIndicatorDialogComponent = /** @class */ (function () {
+    function DeploymentProgressIndicatorDialogComponent(deploymentService) {
+        this.visible = false;
+        this.displayDialog = true;
+        this.deploymentEvents = [];
+        this.closed = new _angular_core__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"]();
+        this.deploymentService = deploymentService;
+    }
+    DeploymentProgressIndicatorDialogComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.deploymentService.onDeploymentStatusUpdate((function (event) {
+            var found = false;
+            for (var i = 0; i < _this.deploymentEvents.length; i++) {
+                var existingEvent = _this.deploymentEvents[i];
+                if (existingEvent.eventName === event.eventName) {
+                    _this.deploymentEvents[i] = event;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                _this.deploymentEvents.push(event);
+            }
+        }));
+    };
+    DeploymentProgressIndicatorDialogComponent.prototype.ngOnChanges = function () {
+        this.deploymentEvents = [];
+    };
+    Object.defineProperty(DeploymentProgressIndicatorDialogComponent.prototype, "deployment", {
+        get: function () {
+            return this._deployment;
+        },
+        set: function (deployment) {
+            this.visible = true;
+            this._deployment = deployment;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    DeploymentProgressIndicatorDialogComponent.prototype.closeDialog = function () {
+        this.visible = false;
+        this.closed.emit('closed');
+        console.log('emitting closed');
+    };
+    tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Output"])(),
+        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:type", Object)
+    ], DeploymentProgressIndicatorDialogComponent.prototype, "closed", void 0);
+    tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Input"])(),
+        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:type", Object),
+        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:paramtypes", [Object])
+    ], DeploymentProgressIndicatorDialogComponent.prototype, "deployment", null);
+    DeploymentProgressIndicatorDialogComponent = tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Component"])({
+            selector: 'app-deployment-progress-indicator-dialog',
+            template: __webpack_require__(/*! ./deployment-progress-indicator.component.html */ "./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.html"),
+            styles: [__webpack_require__(/*! ./deployment-progress-indicator.component.css */ "./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.css")]
+        }),
+        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:paramtypes", [_deployment_service__WEBPACK_IMPORTED_MODULE_2__["DeploymentService"]])
+    ], DeploymentProgressIndicatorDialogComponent);
+    return DeploymentProgressIndicatorDialogComponent;
+}());
+
+
+
+/***/ }),
+
 /***/ "./src/app/deployment/deployment-progress-indicator/deployment-progress-indicator.component.css":
 /*!******************************************************************************************************!*\
   !*** ./src/app/deployment/deployment-progress-indicator/deployment-progress-indicator.component.css ***!
@@ -1464,7 +1606,7 @@ module.exports = "\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<p-dialog *ngIf=\"deployment\"\n    header=\"{{deployment.pullRequestMeta.issueNumber}}/{{deployment.pullRequestMeta.pullId}}\"\n    [visible]=\"true\" [responsive]=\"true\" showEffect=\"fade\" [modal]=\"true\" [style]=\"{width: '60%'}\">\n    <div>\n      <div *ngFor=\"let event of deploymentEvents\">\n          {{'deploymentStatusUpdate.' + event.eventName | translate:event.data}}\n          <i class=\"pi\" [ngClass]=\"{'pi-spin pi-spinner': event.action === 'start', 'pi-check': event.action === 'end', 'pi-times': event.action === 'failure'}\"></i>\n      </div>\n    </div>\n    <p-footer>\n        <div class=\"ui-dialog-buttonpane ui-helper-clearfix\">\n            <button\n              type=\"button\" pButton (click)=\"closeDialog()\"\n              label=\"Ok\">\n            </button>\n        </div>\n    </p-footer>\n</p-dialog>\n"
+module.exports = "<div>\n  <div *ngFor=\"let event of deploymentEvents\">\n    {{'deploymentStatusUpdate.' + event.eventName | translate:event.data}}\n    <i class=\"pi\"\n      [ngClass]=\"{'pi-spin pi-spinner': event.action === 'start', 'pi-check': event.action === 'end', 'pi-times': event.action === 'failure'}\"></i>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -1487,8 +1629,6 @@ __webpack_require__.r(__webpack_exports__);
 
 var DeploymentProgressIndicatorComponent = /** @class */ (function () {
     function DeploymentProgressIndicatorComponent(deploymentService) {
-        this.visible = false;
-        this.displayDialog = true;
         this.deploymentEvents = [];
         this.closed = new _angular_core__WEBPACK_IMPORTED_MODULE_1__["EventEmitter"]();
         this.deploymentService = deploymentService;
@@ -1518,17 +1658,11 @@ var DeploymentProgressIndicatorComponent = /** @class */ (function () {
             return this._deployment;
         },
         set: function (deployment) {
-            this.visible = true;
             this._deployment = deployment;
         },
         enumerable: true,
         configurable: true
     });
-    DeploymentProgressIndicatorComponent.prototype.closeDialog = function () {
-        this.visible = false;
-        this.closed.emit('closed');
-        console.log('emitting closed');
-    };
     tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Output"])(),
         tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:type", Object)
@@ -1571,9 +1705,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _deployment_list_deployment_list_pr_component__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./deployment-list/deployment-list-pr.component */ "./src/app/deployment/deployment-list/deployment-list-pr.component.ts");
 /* harmony import */ var _deployment_list_deployment_list_rc_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./deployment-list/deployment-list-rc.component */ "./src/app/deployment/deployment-list/deployment-list-rc.component.ts");
 /* harmony import */ var _deployment_progress_indicator_deployment_progress_indicator_component__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./deployment-progress-indicator/deployment-progress-indicator.component */ "./src/app/deployment/deployment-progress-indicator/deployment-progress-indicator.component.ts");
-/* harmony import */ var _qa_server_state_qa_server_state_component__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./qa-server-state/qa-server-state.component */ "./src/app/deployment/qa-server-state/qa-server-state.component.ts");
-/* harmony import */ var primeng_tooltip__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! primeng/tooltip */ "./node_modules/primeng/tooltip.js");
-/* harmony import */ var primeng_tooltip__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(primeng_tooltip__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var _deployment_progress_indicator_dialog_deployment_progress_indicator_component__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./deployment-progress-indicator-dialog/deployment-progress-indicator.component */ "./src/app/deployment/deployment-progress-indicator-dialog/deployment-progress-indicator.component.ts");
+/* harmony import */ var _qa_server_state_qa_server_state_component__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./qa-server-state/qa-server-state.component */ "./src/app/deployment/qa-server-state/qa-server-state.component.ts");
+/* harmony import */ var primeng_tooltip__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! primeng/tooltip */ "./node_modules/primeng/tooltip.js");
+/* harmony import */ var primeng_tooltip__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(primeng_tooltip__WEBPACK_IMPORTED_MODULE_10__);
+
 
 
 
@@ -1594,12 +1730,13 @@ var DeploymentModule = /** @class */ (function () {
                 _deployment_list_deployment_list_pr_component__WEBPACK_IMPORTED_MODULE_5__["DeploymentListPullRequestComponent"],
                 _deployment_list_deployment_list_rc_component__WEBPACK_IMPORTED_MODULE_6__["DeploymentListReleaseCandidateComponent"],
                 _deployment_progress_indicator_deployment_progress_indicator_component__WEBPACK_IMPORTED_MODULE_7__["DeploymentProgressIndicatorComponent"],
-                _qa_server_state_qa_server_state_component__WEBPACK_IMPORTED_MODULE_8__["QaServerStateComponent"]
+                _deployment_progress_indicator_dialog_deployment_progress_indicator_component__WEBPACK_IMPORTED_MODULE_8__["DeploymentProgressIndicatorDialogComponent"],
+                _qa_server_state_qa_server_state_component__WEBPACK_IMPORTED_MODULE_9__["QaServerStateComponent"]
             ],
             imports: [
                 _angular_common__WEBPACK_IMPORTED_MODULE_2__["CommonModule"],
                 _common_common_module__WEBPACK_IMPORTED_MODULE_4__["PackageCommonModule"],
-                primeng_tooltip__WEBPACK_IMPORTED_MODULE_9__["TooltipModule"]
+                primeng_tooltip__WEBPACK_IMPORTED_MODULE_10__["TooltipModule"]
             ],
             exports: [
                 _deployment_list_deployment_list_component__WEBPACK_IMPORTED_MODULE_3__["DeploymentListComponent"],
@@ -1755,7 +1892,7 @@ var DeploymentService = /** @class */ (function () {
             deploymentName: options.deploymentName,
             pullId: options.pullId,
             payload: {
-                serverTags: options.serverTags
+                stageIdentifier: options.stageIdentifier
             }
         });
     };
@@ -2031,6 +2168,344 @@ var OverviewComponent = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/app/project/project-list/project-list.component.css":
+/*!*****************************************************************!*\
+  !*** ./src/app/project/project-list/project-list.component.css ***!
+  \*****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = ".p-d-flex {\n  display: flex;\n}\n.p-jc-between {\n  justify-content: space-between;\n}\n.form__input-container {\n  display: inline;\n}\ninput.p-invalid {\n  border: 1px solid red;\n}\n.p-invalid {\n  color: red;\n}\n.ui-g-05 {\n  width: 4%;\n}\n\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNyYy9hcHAvcHJvamVjdC9wcm9qZWN0LWxpc3QvcHJvamVjdC1saXN0LmNvbXBvbmVudC5jc3MiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7RUFDRSxhQUFhO0FBQ2Y7QUFDQTtFQUNFLDhCQUE4QjtBQUNoQztBQUVBO0VBQ0UsZUFBZTtBQUNqQjtBQUVBO0VBQ0UscUJBQXFCO0FBQ3ZCO0FBRUE7RUFDRSxVQUFVO0FBQ1o7QUFFQTtFQUNFLFNBQVM7QUFDWCIsImZpbGUiOiJzcmMvYXBwL3Byb2plY3QvcHJvamVjdC1saXN0L3Byb2plY3QtbGlzdC5jb21wb25lbnQuY3NzIiwic291cmNlc0NvbnRlbnQiOlsiLnAtZC1mbGV4IHtcbiAgZGlzcGxheTogZmxleDtcbn1cbi5wLWpjLWJldHdlZW4ge1xuICBqdXN0aWZ5LWNvbnRlbnQ6IHNwYWNlLWJldHdlZW47XG59XG5cbi5mb3JtX19pbnB1dC1jb250YWluZXIge1xuICBkaXNwbGF5OiBpbmxpbmU7XG59XG5cbmlucHV0LnAtaW52YWxpZCB7XG4gIGJvcmRlcjogMXB4IHNvbGlkIHJlZDtcbn1cblxuLnAtaW52YWxpZCB7XG4gIGNvbG9yOiByZWQ7XG59XG5cbi51aS1nLTA1IHtcbiAgd2lkdGg6IDQlO1xufVxuIl19 */"
+
+/***/ }),
+
+/***/ "./src/app/project/project-list/project-list.component.html":
+/*!******************************************************************!*\
+  !*** ./src/app/project/project-list/project-list.component.html ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "<p-toast [style]=\"{marginTop: '80px'}\"></p-toast>\n\n<p-toast position=\"center\" key=\"c\" [modal]=\"true\" [baseZIndex]=\"5000\">\n  <ng-template let-message pTemplate=\"message\">\n    <div style=\"text-align: center\">\n      <i class=\"pi pi-exclamation-triangle\" style=\"font-size: 3em\"></i>\n      <h3>{{message.summary}}</h3>\n      <p>{{message.detail}}</p>\n    </div>\n    <div class=\"ui-g ui-fluid\">\n      <div class=\"ui-g-6\">\n        <button type=\"button\" pButton label=\"Yes\" class=\"ui-button-success\"></button>\n      </div>\n      <div class=\"ui-g-6\">\n        <button type=\"button\" pButton label=\"No\" class=\"ui-button-secondary\"></button>\n      </div>\n    </div>\n  </ng-template>\n</p-toast>\n\n<p-table #dt [columns]=\"cols\" [value]=\"projects\" [lazy]=\"true\" (onLazyLoad)=\"loadProjects($event)\"\n  [tableStyle]=\"{'table-layout':'auto'}\" [totalRecords]=\"totalDeployments\" [loading]=\"loading\"\n  [rowsPerPageOptions]=\"[10,20,30]\" [paginator]=\"true\" [rows]=\"10\" dataKey=\"id\" editMode=\"row\">\n\n  <ng-template pTemplate=\"caption\">\n    <div class=\"p-d-flex p-ai-center p-jc-between\">\n      Projects\n      <button type=\"button\" pButton icon=\"pi pi-check\" (click)=\"showNewProjectDialog()\" label=\"New project\">\n      </button>\n    </div>\n  </ng-template>\n\n  <ng-template pTemplate=\"header\" let-columns>\n    <tr>\n      <th *ngFor=\"let col of columns\" [pSortableColumn]=\"col.isSortable && col.field\">\n        {{col.header}}\n        <p-sortIcon [field]=\"col.field\" ariaLabel=\"Activate to sort\" *ngIf=\"col.isSortable\"\n          ariaLabelDesc=\"Activate to sort in descending order\" ariaLabelAsc=\"Activate to sort in ascending order\">\n        </p-sortIcon>\n      </th>\n      <th class=\"edit-column\"></th>\n    </tr>\n    <tr>\n      <th *ngFor=\"let col of columns\" [ngSwitch]=\"col.field\">\n      </th>\n      <th></th>\n    </tr>\n  </ng-template>\n\n\n  <ng-template pTemplate=\"body\" let-rowData let-ri=\"rowIndex\" let-editing=\"editing\">\n    <tr [pEditableRow]=\"rowData\">\n      <td *ngFor=\"let col of cols;\">\n        <div *ngIf=\"col.field !== 'jiraStatus.name'\">\n          <div [innerHTML]=\"getCellValue(rowData, col)\">\n          </div>\n        </div>\n        <p-cellEditor *ngIf=\"col.field === 'jiraStatus.name'\">\n          <ng-template pTemplate=\"input\">\n            <p-dropdown [options]=\"rowData.presentationTransitionList\" [style]=\"{'width':'100%'}\"\n              [(ngModel)]=\"rowData.jiraStatus.id\">\n\n            </p-dropdown>\n          </ng-template>\n          <ng-template pTemplate=\"output\">\n            {{getCellValue(rowData, col)}}\n          </ng-template>\n        </p-cellEditor>\n      </td>\n\n      <td style=\"text-align:center\">\n        <div *ngIf=\"rowData.$meta.$isEditable\" style=\"display: inline-block\">\n          <button *ngIf=\"!editing\" type=\"button\" pInitEditableRow class=\"pi pi-pencil\"\n            (click)=\"editing = true && onRowEditInit(rowData)\"></button>\n          <button *ngIf=\"editing\" type=\"button\" pSaveEditableRow class=\"pi pi-check\" style=\"margin-right: .5em\"\n            (click)=\"onRowEditSave(rowData)\"></button>\n          <button *ngIf=\"editing\" type=\"button\" pCancelEditableRow class=\"pi pi-times\"\n            (click)=\"editing = false && onRowEditCancel(rowData, ri)\"></button>\n        </div>\n        <button *ngIf=\"rowData.$meta.$isInstallable && !editing\" type=\"button\" class=\"pi pi-cloud-upload\"\n          (click)=\"showInstallDeploymentDialog(rowData)\"></button>\n      </td>\n    </tr>\n  </ng-template>\n</p-table>\n\n<p-dialog header=\"New project\" [(visible)]=\"displayDialog\" [responsive]=\"true\" showEffect=\"fade\" [modal]=\"true\"\n  [style]=\"{width: '60%'}\">\n  <div class=\"ui-g ui-fluid\">\n    <div class=\"ui-g-12\">\n      <div class=\"ui-g-4\">\n        <input type=\"text\" pInputText [(ngModel)]=\"projectName\" placeholder=\"Name\" />\n      </div>\n    </div>\n\n\n    <div class=\"ui-g-12\">\n      <h3>Stages</h3>\n    </div>\n    <div *ngFor=\"let stage of projectStages; let idx = index\">\n      <div class=\"ui-g-12\">\n        <div class=\"ui-g-2\">\n          <input type=\"text\" pInputText ngClass=\"{'p-invalid': getPropError(stage, 'name')}\" [(ngModel)]=\"stage.name\"\n            placeholder=\"Name\" />\n          <small class=\"p-invalid\" *ngIf=\"getPropError(stage, 'name')\">{{getPropError(stage, 'name')}}</small>\n        </div>\n\n        <div class=\"ui-g-2\">\n          <p-dropdown [options]=\"[{label: 'qa', value: 'qa'}, {label: 'production', value: 'production'}]\"\n            [style]=\"{'width':'100%'}\" [(ngModel)]=\"stage.band\">\n          </p-dropdown>\n        </div>\n\n        <div class=\"ui-g-2\">\n          <p-dropdown [options]=\"[{label: 'on-premise', value: 'on-premise'}, {label: 'aws', value: 'aws'}]\"\n            [style]=\"{'width':'100%'}\" [(ngModel)]=\"stage.type\">\n          </p-dropdown>\n        </div>\n\n        <div class=\"ui-g-2\">\n          <p-dropdown\n            [options]=\"[{label: '', value: ''}, {label: 'lambda', value: 'lambda'}, {label: 's3', value: 's3'}]\"\n            [style]=\"{'width':'100%'}\" [(ngModel)]=\"stage.resourceType\">\n          </p-dropdown>\n        </div>\n\n\n        <div class=\"ui-g-2\">\n          <input type=\"text\" ngClass=\"{'p-invalid': getPropError(stage, 'resourceName')}\" pInputText\n            [(ngModel)]=\"stage.resourceName\" placeholder=\"Resource name\" />\n          <small class=\"p-invalid\"\n            *ngIf=\"getPropError(stage, 'resourceName')\">{{getPropError(stage, 'resourceName')}}</small>\n        </div>\n\n        <div class=\"ui-g-1 ui-g-05\">\n          <button *ngIf=\"idx === projectStages.length - 1\" type=\"button\" pButton icon=\"pi pi-plus\"\n            (click)=\"addNewStage()\" [disabled]=\"!canAddStage()\">\n          </button>\n        </div>\n\n        <div class=\"ui-g-1 ui-g-05\">\n          <button *ngIf=\"projectStages.length > 1\" type=\"button\" pButton icon=\"pi pi-times\" (click)=\"removeStage(stage)\"\n            [disabled]=\"projectStages.length === 1\">\n          </button>\n        </div>\n      </div>\n\n      <div class=\"ui-g-6\" style=\"width: auto;\" *ngIf=\"stage.type === 'aws'\">\n        <p-chips *ngIf=\"stage.type === 'aws'\" [(ngModel)]=\"stage.regions\" placeholder=\"Regions\"></p-chips>\n      </div>\n    </div>\n\n  </div>\n  <p-footer>\n    <div class=\"ui-dialog-buttonpane ui-helper-clearfix\">\n      <button type=\"button\" pButton icon=\"pi pi-check\" (click)=\"createProject()\" label=\"Create\"\n        [disabled]=\"!canCreateProject()\">\n      </button>\n    </div>\n  </p-footer>\n</p-dialog>\n\n<app-loading-mask></app-loading-mask>\n"
+
+/***/ }),
+
+/***/ "./src/app/project/project-list/project-list.component.ts":
+/*!****************************************************************!*\
+  !*** ./src/app/project/project-list/project-list.component.ts ***!
+  \****************************************************************/
+/*! exports provided: ProjectListComponent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ProjectListComponent", function() { return ProjectListComponent; });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var primeng_api__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! primeng/api */ "./node_modules/primeng/api.js");
+/* harmony import */ var primeng_api__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(primeng_api__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _project_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project.service */ "./src/app/project/project.service.ts");
+
+
+
+
+var COLUMNS = [
+    {
+        field: 'name', header: 'Name', isEditable: false, isSortable: false
+    },
+    {
+        field: 'stages', header: 'Stages', isEditable: false, isSortable: false,
+        renderer: function (data) {
+            return data.stages.map(function (stage) {
+                var regions = stage.regions && stage.regions.length ? "[" + stage.regions.join('') + "]" : '';
+                return "[" + stage.type + "] [" + stage.band + "] - " + stage.resourceName + " " + stage.resourceType + " " + regions;
+            }).map(function (val) { return "<div>" + val + "</div>"; }).join('');
+        }
+    }
+];
+var ProjectListComponent = /** @class */ (function () {
+    function ProjectListComponent(deploymentService, messageService) {
+        this.defaultStage = {
+            type: 'aws',
+            name: null,
+            band: 'qa',
+            regions: ['eu-west-1'],
+            resourceName: null,
+            resourceType: 'lambda',
+            runtime: 'nodejs'
+        };
+        this.projectStages = [JSON.parse(JSON.stringify(this.defaultStage))];
+        this.projects = [];
+        this.loading = true;
+        this.paginationOptions = { query: {} };
+        this.projectService = deploymentService;
+        this.messageService = messageService;
+    }
+    ProjectListComponent.prototype.ngOnInit = function () {
+        return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {
+            return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
+                this.setColumnConfig();
+                return [2 /*return*/];
+            });
+        });
+    };
+    ProjectListComponent.prototype.loadProjects = function (_a) {
+        var first = _a.first, rows = _a.rows, sortField = _a.sortField, sortOrder = _a.sortOrder;
+        return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {
+            var pageResult;
+            return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        this.loading = true;
+                        return [4 /*yield*/, this.projectService.getProjects()];
+                    case 1:
+                        pageResult = _b.sent();
+                        // this.deployments = DeploymentMapper.toPresentationDeploymentList(pageResult.items);
+                        this.totalDeployments = pageResult.totalCount;
+                        this.projects = pageResult.items;
+                        this.loading = false;
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ProjectListComponent.prototype.onRowEditInit = function (project) {
+        /*  this.messageService.add({severity: 'info', summary: 'on edit init', detail: 'on edit init'}); */
+    };
+    ProjectListComponent.prototype.onRowEditSave = function (project) {
+    };
+    ProjectListComponent.prototype.onProgressIndicatorClosed = function () {
+    };
+    ProjectListComponent.prototype.onRowEditCancel = function (project, index) {
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Car is updated' });
+    };
+    ProjectListComponent.prototype.setColumnConfig = function () {
+        this.cols = COLUMNS;
+    };
+    ProjectListComponent.prototype.showInstallDeploymentDialog = function (project) { };
+    ProjectListComponent.prototype.showNewProjectDialog = function () {
+        this.displayDialog = true;
+    };
+    ProjectListComponent.prototype.createProject = function () {
+        return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {
+            return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
+                console.log(this.projectStages);
+                return [2 /*return*/, this.projectService.createProject({
+                        name: this.projectName,
+                        stages: this.projectStages
+                    })];
+            });
+        });
+    };
+    ProjectListComponent.prototype.canCreateProject = function () {
+        if (!this.projectName) {
+            return false;
+        }
+        if (!this.canAddStage()) {
+            return false;
+        }
+        return true;
+    };
+    ProjectListComponent.prototype.isValidStage = function (stage) {
+        if (!stage.name) {
+            return false;
+        }
+        if (stage.type === 'aws') {
+            if (!stage.resourceName || !stage.resourceType) {
+                return false;
+            }
+        }
+        return !this.getPropError(stage, 'resourceName');
+    };
+    ProjectListComponent.prototype.canAddStage = function () {
+        for (var _i = 0, _a = this.projectStages; _i < _a.length; _i++) {
+            var stage = _a[_i];
+            if (!this.isValidStage(stage)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    ProjectListComponent.prototype.addNewStage = function () {
+        this.projectStages.push(JSON.parse(JSON.stringify(this.defaultStage)));
+    };
+    ProjectListComponent.prototype.removeStage = function (stage) {
+        this.projectStages = this.projectStages.filter(function (s) { return s.name !== stage.name; });
+    };
+    ProjectListComponent.prototype.getPropError = function (stage, prop) {
+        if (prop === 'name') {
+            if (!stage.name) {
+                return "Missing " + prop;
+            }
+            if (!this.isUniqueStageProp(stage, prop)) {
+                return 'Should be unique';
+            }
+            return;
+        }
+        if (prop === 'resourceName' && stage.type === 'aws') {
+            if (!stage.resourceName) {
+                return "Missing " + prop;
+            }
+            if (!this.isUniqueStageProp(stage, prop)) {
+                return 'Should be unique';
+            }
+            return;
+        }
+        if (prop === 'resourceType' && stage.type === 'aws') {
+            if (!stage[prop]) {
+                return "Missing " + prop;
+            }
+        }
+        return;
+    };
+    ProjectListComponent.prototype.isUniqueStageProp = function (stage, prop) {
+        var count = this.projectStages.filter(function (s) { return s[prop] === stage[prop]; }).length;
+        return count === 1;
+    };
+    ProjectListComponent.prototype.getCellValue = function (rowData, _a) {
+        var field = _a.field, renderer = _a.renderer;
+        var dataIndexes = field.split('.');
+        var val = rowData;
+        for (var i = 0; i < dataIndexes.length; i++) {
+            var dataIndex = dataIndexes[i];
+            val = val[dataIndex];
+            if (!val || typeof val !== 'object') {
+                break;
+            }
+        }
+        if (renderer) {
+            val = renderer(rowData);
+        }
+        return val;
+    };
+    ProjectListComponent = tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Component"])({
+            selector: 'app-project-list',
+            template: __webpack_require__(/*! ./project-list.component.html */ "./src/app/project/project-list/project-list.component.html"),
+            providers: [primeng_api__WEBPACK_IMPORTED_MODULE_2__["MessageService"]],
+            styles: [__webpack_require__(/*! ./project-list.component.css */ "./src/app/project/project-list/project-list.component.css")]
+        }),
+        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:paramtypes", [_project_service__WEBPACK_IMPORTED_MODULE_3__["ProjectService"], primeng_api__WEBPACK_IMPORTED_MODULE_2__["MessageService"]])
+    ], ProjectListComponent);
+    return ProjectListComponent;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/app/project/project.module.ts":
+/*!*******************************************!*\
+  !*** ./src/app/project/project.module.ts ***!
+  \*******************************************/
+/*! exports provided: ProjectModule */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ProjectModule", function() { return ProjectModule; });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/common */ "./node_modules/@angular/common/fesm5/common.js");
+/* harmony import */ var _project_list_project_list_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./project-list/project-list.component */ "./src/app/project/project-list/project-list.component.ts");
+/* harmony import */ var _common_common_module__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../common/common.module */ "./src/app/common/common.module.ts");
+/* harmony import */ var primeng_tooltip__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! primeng/tooltip */ "./node_modules/primeng/tooltip.js");
+/* harmony import */ var primeng_tooltip__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(primeng_tooltip__WEBPACK_IMPORTED_MODULE_5__);
+
+
+
+
+
+
+var ProjectModule = /** @class */ (function () {
+    function ProjectModule() {
+    }
+    ProjectModule = tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["NgModule"])({
+            declarations: [
+                _project_list_project_list_component__WEBPACK_IMPORTED_MODULE_3__["ProjectListComponent"]
+            ],
+            imports: [
+                _angular_common__WEBPACK_IMPORTED_MODULE_2__["CommonModule"],
+                _common_common_module__WEBPACK_IMPORTED_MODULE_4__["PackageCommonModule"],
+                primeng_tooltip__WEBPACK_IMPORTED_MODULE_5__["TooltipModule"]
+            ],
+            exports: [
+                _project_list_project_list_component__WEBPACK_IMPORTED_MODULE_3__["ProjectListComponent"]
+            ]
+        })
+    ], ProjectModule);
+    return ProjectModule;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/app/project/project.service.ts":
+/*!********************************************!*\
+  !*** ./src/app/project/project.service.ts ***!
+  \********************************************/
+/*! exports provided: ProjectService */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ProjectService", function() { return ProjectService; });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _common_api_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../common/api.service */ "./src/app/common/api.service.ts");
+/* harmony import */ var _common_config_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../common/config.service */ "./src/app/common/config.service.ts");
+
+
+
+
+var ProjectService = /** @class */ (function () {
+    function ProjectService(api, zone, config) {
+        this.clientInstance = api.clientInstance;
+    }
+    ProjectService.prototype.createProject = function (project) {
+        return this.clientInstance.apis.projects.createProject({
+            project: project
+        });
+    };
+    ProjectService.prototype.getProjects = function () {
+        return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {
+            var projects;
+            return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.clientInstance.apis.projects.getProjects()];
+                    case 1:
+                        projects = _a.sent();
+                        projects.forEach(function (project) {
+                            project.$meta = {
+                                $isEditable: false,
+                                $isInstallable: false
+                            };
+                        });
+                        return [2 /*return*/, {
+                                hasMore: false,
+                                items: projects,
+                                totalCount: projects.length,
+                                totalPages: 1
+                            }];
+                }
+            });
+        });
+    };
+    ProjectService = tslib__WEBPACK_IMPORTED_MODULE_0__["__decorate"]([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_1__["Injectable"])({
+            providedIn: 'root'
+        }),
+        tslib__WEBPACK_IMPORTED_MODULE_0__["__metadata"]("design:paramtypes", [_common_api_service__WEBPACK_IMPORTED_MODULE_2__["Api"], _angular_core__WEBPACK_IMPORTED_MODULE_1__["NgZone"], _common_config_service__WEBPACK_IMPORTED_MODULE_3__["Config"]])
+    ], ProjectService);
+    return ProjectService;
+}());
+
+
+
+/***/ }),
+
 /***/ "./src/app/server-state/server-state-list/server-state-list.component.css":
 /*!********************************************************************************!*\
   !*** ./src/app/server-state/server-state-list/server-state-list.component.css ***!
@@ -2207,7 +2682,7 @@ module.exports = "\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"grid\" *ngIf=\"userService.isUserLoggedIn()\">\n    <header class=\"header\">\n      <i class=\"fas fa-bars header__menu\"></i>\n      <div class=\"header__search\">\n      </div>\n     <!--  <div class=\"header__avatar\">\n        <div class=\"dropdown\">\n          <ul class=\"dropdown__list\">\n            <li class=\"dropdown__list-item\">\n              <span class=\"dropdown__icon\"><i class=\"far fa-user\"></i></span>\n              <span class=\"dropdown__title\">my profile</span>\n            </li>\n            <li class=\"dropdown__list-item\">\n              <span class=\"dropdown__icon\"><i class=\"fas fa-clipboard-list\"></i></span>\n              <span class=\"dropdown__title\">my account</span>\n            </li>\n            <li class=\"dropdown__list-item\">\n              <span class=\"dropdown__icon\"><i class=\"fas fa-sign-out-alt\"></i></span>\n              <span class=\"dropdown__title\">log out</span>\n            </li>\n          </ul>\n        </div>\n      </div> -->\n    </header>\n\n    <aside class=\"sidenav\">\n      <div class=\"sidenav__brand\">\n        <i class=\"fas fa-feather-alt sidenav__brand-icon\"></i>\n        <a class=\"sidenav__brand-link\" href=\"#\"><span class=\"text-light\"></span></a>\n        <i class=\"fas fa-times sidenav__brand-close\"></i>\n      </div>\n      <div class=\"sidenav__profile\">\n        <div class=\"sidenav__profile-avatar\" [ngStyle]=\"{'background-image': 'url(' + userProfile.imageUrl + ')'}\"></div>\n        <div class=\"sidenav__profile-title text-light\">{{ userProfile.firstName}} {{ userProfile.lastName }}</div>\n      </div>\n      <div class=\"row row--align-v-center row--align-h-center\">\n        <ul class=\"navList\">\n          <li class=\"navList__heading\">deployments<i class=\"far fa-file-alt\"></i></li>\n            <li>\n            <div class=\"navList__subheading row row--align-v-center\">\n              <span class=\"navList__subheading-icon\"><i class=\"fas fa-briefcase-medical\"></i></span>\n              <span class=\"navList__subheading-title\" (click)=\"doRoute('overview')\">overview</span>\n            </div>\n          </li>\n          <li>\n            <div class=\"navList__subheading row row--align-v-center\"\n                 routerLink=\"servers\" [routerLinkActive]=\"['active']\"\n            >\n              <span class=\"navList__subheading-icon\"><i class=\"fas fa-plane-departure\"></i></span>\n              <span class=\"navList__subheading-title\" >server state</span>\n            </div>\n          </li>\n          <li>\n            <div class=\"navList__subheading row row--align-v-center\"\n                 routerLink=\"deployments/pull-request\" [routerLinkActive]=\"['active']\">\n              <span class=\"navList__subheading-icon\"><i class=\"far fa-angry\"></i></span>\n              <span class=\"navList__subheading-title active\">pull requests</span>\n            </div>\n          </li>\n          <li>\n              <div class=\"navList__subheading row row--align-v-center\"\n                   routerLink=\"deployments/release-candidate\" [routerLinkActive]=\"['active']\">\n                <span class=\"navList__subheading-icon\"><i class=\"far fa-angry\"></i></span>\n                <span class=\"navList__subheading-title\">release candidates</span>\n              </div>\n            </li>\n        </ul>\n      </div>\n    </aside>\n\n    <main class=\"main\">\n        <ng-content></ng-content>\n    </main>\n\n    <footer class=\"footer\">\n    </footer>\n  </div>\n"
+module.exports = "<div class=\"grid\" *ngIf=\"userService.isUserLoggedIn()\">\n  <header class=\"header\">\n    <i class=\"fas fa-bars header__menu\"></i>\n    <div class=\"header__search\">\n    </div>\n    <!--  <div class=\"header__avatar\">\n        <div class=\"dropdown\">\n          <ul class=\"dropdown__list\">\n            <li class=\"dropdown__list-item\">\n              <span class=\"dropdown__icon\"><i class=\"far fa-user\"></i></span>\n              <span class=\"dropdown__title\">my profile</span>\n            </li>\n            <li class=\"dropdown__list-item\">\n              <span class=\"dropdown__icon\"><i class=\"fas fa-clipboard-list\"></i></span>\n              <span class=\"dropdown__title\">my account</span>\n            </li>\n            <li class=\"dropdown__list-item\">\n              <span class=\"dropdown__icon\"><i class=\"fas fa-sign-out-alt\"></i></span>\n              <span class=\"dropdown__title\">log out</span>\n            </li>\n          </ul>\n        </div>\n      </div> -->\n  </header>\n\n  <aside class=\"sidenav\">\n    <div class=\"sidenav__brand\">\n      <i class=\"fas fa-feather-alt sidenav__brand-icon\"></i>\n      <a class=\"sidenav__brand-link\" href=\"#\"><span class=\"text-light\"></span></a>\n      <i class=\"fas fa-times sidenav__brand-close\"></i>\n    </div>\n    <div class=\"sidenav__profile\">\n      <div class=\"sidenav__profile-avatar\" [ngStyle]=\"{'background-image': 'url(' + userProfile['avatar_url'] + ')'}\"></div>\n      <div class=\"sidenav__profile-title text-light\">{{ userProfile.firstName}} {{ userProfile.lastName }}</div>\n    </div>\n    <div class=\"row row--align-v-center row--align-h-center\">\n      <ul class=\"navList\">\n        <li class=\"navList__heading\">admin<i class=\"far fa-file-alt\"></i></li>\n        <li>\n          <div class=\"navList__subheading row row--align-v-center\">\n            <span class=\"navList__subheading-icon\"><i class=\"fas fa-briefcase-medical\"></i></span>\n            <span class=\"navList__subheading-title\" (click)=\"doRoute('projects')\">projects</span>\n          </div>\n        </li>\n\n        <li class=\"navList__heading\">deployments<i class=\"far fa-file-alt\"></i></li>\n        <li>\n          <div class=\"navList__subheading row row--align-v-center\">\n            <span class=\"navList__subheading-icon\"><i class=\"fas fa-briefcase-medical\"></i></span>\n            <span class=\"navList__subheading-title\" (click)=\"doRoute('overview')\">overview</span>\n          </div>\n        </li>\n        <li>\n          <div class=\"navList__subheading row row--align-v-center\" routerLink=\"servers\" [routerLinkActive]=\"['active']\">\n            <span class=\"navList__subheading-icon\"><i class=\"fas fa-plane-departure\"></i></span>\n            <span class=\"navList__subheading-title\">server state</span>\n          </div>\n        </li>\n        <li>\n          <div class=\"navList__subheading row row--align-v-center\" routerLink=\"deployments/pull-request\"\n            [routerLinkActive]=\"['active']\">\n            <span class=\"navList__subheading-icon\"><i class=\"far fa-angry\"></i></span>\n            <span class=\"navList__subheading-title active\">pull requests</span>\n          </div>\n        </li>\n        <li>\n          <div class=\"navList__subheading row row--align-v-center\" routerLink=\"deployments/release-candidate\"\n            [routerLinkActive]=\"['active']\">\n            <span class=\"navList__subheading-icon\"><i class=\"far fa-angry\"></i></span>\n            <span class=\"navList__subheading-title\">release candidates</span>\n          </div>\n        </li>\n      </ul>\n    </div>\n  </aside>\n\n  <main class=\"main\">\n    <ng-content></ng-content>\n  </main>\n\n  <footer class=\"footer\">\n  </footer>\n</div>\n"
 
 /***/ }),
 
@@ -2267,7 +2742,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formatDeploymentVersion", function() { return formatDeploymentVersion; });
 function formatDeploymentVersion(version, pullRequestMeta) {
     if (pullRequestMeta) {
-        return version + "-prid-" + pullRequestMeta.pullId + "/" + pullRequestMeta.issueNumber;
+        return version + "-prid-" + pullRequestMeta.pullId + "/" + pullRequestMeta.issueNumber + " - " + pullRequestMeta.sourceBranch;
     }
     return version;
 }
