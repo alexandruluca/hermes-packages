@@ -5,10 +5,12 @@ const {s3Service} = require('./S3Service');
 const {getGitTagNameByDeployment} = require('../../../util');
 const {storageProvider} = require('../../../providers/storageProvider');
 const {lambdaService} = require('./LambdaService');
-const LambdaRuntimes = ['nodejs'];
 const {eventBusService} = require('../../event-bus/EventBusService');
 const {DeploymentBand} = require('../../deployment/const');
 const {s3DeploymentService} = require('./S3DeploymentService');
+
+const LAMBDA_RUNTINME_LIST = ['nodejs'];
+const SUPPORTED_RESOURCE_LIST = ['lambda', 's3'];
 
 class AwsProviderService extends InfrastructureProviderService {
 	/**
@@ -37,13 +39,13 @@ class AwsProviderService extends InfrastructureProviderService {
 					statusCode: StatusCode.BAD_REQUEST
 				});
 			}
-			if (stage.resourceType !== 'lambda') {
+			if (!SUPPORTED_RESOURCE_LIST.includes(stage.resourceType)) {
 				throw new ServiceError({
 					message: `Resource type ${stage.resourceType} not supported`,
 					statusCode: StatusCode.BAD_REQUEST
 				});
 			}
-			if (stage.resourceType === 'lambda' && !LambdaRuntimes.includes(stage.runtime)) {
+			if (stage.resourceType === 'lambda' && !LAMBDA_RUNTINME_LIST.includes(stage.runtime)) {
 				throw new ServiceError({
 					message: `Runtime ${stage.runtime} not supported`,
 					statusCode: StatusCode.BAD_REQUEST
@@ -62,7 +64,6 @@ class AwsProviderService extends InfrastructureProviderService {
 	 * @param {Project} project
 	 */
 	async _validateExistingResources(project) {
-		console.log('validate');
 		await this._validateExistingLambdas(project);
 	}
 
@@ -75,11 +76,10 @@ class AwsProviderService extends InfrastructureProviderService {
 		let validateResources = project.stages.map(async (stage) => {
 			let validateRegionalResources = stage.regions.map(async (region) => {
 				let _errors = [];
-				console.log(stage);
 				if (stage.resourceType === 'lambda') {
-					_errors = await this._validateLambda(stage.resourceName, region);
+					_errors = await this._validateLambda(stage, region);
 				} else if (stage.resourceType === 's3') {
-					_errors = await this._validateS3Bucket(stage.resourceName, region);
+					_errors = await this._validateS3Bucket(stage, region);
 				}
 				errors.push(..._errors);
 			});
@@ -107,7 +107,7 @@ class AwsProviderService extends InfrastructureProviderService {
 
 		if (!lambda) {
 			errors.push(`Lambda function ${stage.resourceName}-${region} not found`);
-			return;
+			return errors;
 		}
 
 		let runtime = lambda.Runtime.replace(/[0-9\\.x]+/gi, '');
@@ -125,13 +125,16 @@ class AwsProviderService extends InfrastructureProviderService {
 	async _validateS3Bucket(stage, region) {
 		let errors = [];
 
-		let exists = await s3Service.isExistingBucket(stage.resourceName + 'ss', region);
+		let exists = false;
 
-		console.log('exists', exists);
-
+		try {
+			exists = await s3Service.isExistingBucket(stage.resourceName, region);
+		} catch (err) {
+			exists = false;
+		}
 		if (!exists) {
 			errors.push(`s3 bucket ${stage.resourceName} not found`);
-			return;
+			return errors;
 		}
 
 		return errors;

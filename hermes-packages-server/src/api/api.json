@@ -33,6 +33,7 @@
 				"description": "Create project",
 				"x-swagger-router-controller": "ProjectController",
 				"operationId": "createProject",
+				"security": [],
 				"parameters": [
 					{
 						"name": "project",
@@ -42,19 +43,11 @@
 						"schema": {
 							"type": "object",
 							"required": [
-								"name",
-								"type"
+								"name"
 							],
 							"properties": {
 								"name": {
 									"type": "string"
-								},
-								"type": {
-									"type": "string",
-									"enum": [
-										"on-premise",
-										"aws"
-									]
 								},
 								"stages": {
 									"type": "array",
@@ -62,11 +55,19 @@
 										"type": "object",
 										"required": [
 											"name",
+											"type",
 											"band"
 										],
 										"properties": {
 											"name": {
 												"type": "string"
+											},
+											"type": {
+												"type": "string",
+												"enum": [
+													"on-premise",
+													"aws"
+												]
 											},
 											"band": {
 												"type": "string",

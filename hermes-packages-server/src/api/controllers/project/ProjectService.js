@@ -1,7 +1,7 @@
 const uuid = require('uuid');
 const projectCollection = require('../../collections/project');
 const {ServiceError, StatusCode} = require('../../lib/error');
-const {getInstance: getInfraProviderInstance} = require('../../services/infrastructure-provider');
+const {getInstance: getInfraProviderInstance, PROVIDER_LIST} = require('../../services/infrastructure-provider');
 
 class ProjectService {
 	/**
@@ -33,7 +33,12 @@ class ProjectService {
 	 * @param {Project} project
 	 */
 	async validateProject(project) {
-		return getInfraProviderInstance(project.type).validateProject(project);
+		return Promise.all(PROVIDER_LIST.map(async (providerType) => {
+			let proj = JSON.parse(JSON.stringify(project));
+			proj.stages = proj.stages.filter(s => s.type === providerType);
+
+			return getInfraProviderInstance(providerType).validateProject(proj);
+		}));
 	}
 }
 

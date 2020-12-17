@@ -2,6 +2,7 @@ const lambdaCollection = require('../../../collections/lambda-function-version')
 var AWS = require('aws-sdk');
 const logger = require('../../../lib/logger');
 const config = require('../../../lib/config');
+const {eventBusService} = require('../../event-bus/EventBusService');
 const awsConfig = config.awsDeployments;
 
 const lambdaInstances = {};
@@ -89,9 +90,15 @@ class LambdaService {
 	 */
 	async deployLambdaFunction({functionName, region, s3FileName, stage, deploymentVersion, band}) {
 		let aliasName = stage;
+		let message = 'aws-lambda-updating-code';
+		eventBusService.emitDeploymentStatusUpdate(message);
 		await this.updateLambdaCode(functionName, region, s3FileName);
+		eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
 
 		let version = await this.publishLambdaVersion(functionName, region);
+
+		message = 'aws-lambda-version-publish';
+		eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true, data: {version}});
 
 		logger.info(`publishing version for lambda function: '${functionName}:${version}'`);
 
@@ -106,6 +113,9 @@ class LambdaService {
 		if (lambdaEntry) {
 			let oldVersion = lambdaEntry.version;
 			if (oldVersion === version) {
+				message = 'aws-lambda-skip-alias-create';
+				eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
+
 				logger.info(`skip alias create, alias '${aliasName}' for function '${functionName}@${oldVersion}' already exists`);
 				return;
 			}
@@ -119,7 +129,12 @@ class LambdaService {
 
 		logger.info(`creating alias: '${aliasName}' for function: '${functionName}:${version}'`);
 
+		message = 'aws-lambda-create-alias';
+		eventBusService.emitDeploymentStatusUpdate(message, {data: {alias: aliasName}})
+
 		await this.createLambdaAlias({functionName, version, region, aliasName});
+
+		eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true})
 
 		if (!lambdaEntry) {
 			doc.version = version;

@@ -872,7 +872,7 @@ class DeploymentService {
 
 		this._assertExistingDeployment(deployment, deploymentName);
 
-		let infraProviderService = getInfraProviderInstance(project.type);
+		let infraProviderService = getInfraProviderInstance(stage.type);
 
 		await infraProviderService.handleDeploymentInstall({stage, project, deployment});
 	}
@@ -893,7 +893,7 @@ class DeploymentService {
 
 		this._assertExistingDeployment(deployment, deploymentName);
 
-		await getInfraProviderInstance(project.type).resetDeploymentToRelease({project, deployment, stage});
+		await getInfraProviderInstance(stage.type).resetDeploymentToRelease({project, deployment, stage});
 	}
 
 	/**
@@ -950,7 +950,7 @@ class DeploymentService {
 			deployment.serverTags.push(serverTag);
 		}
 
-		let infraProviderService = getInfraProviderInstance(project.type);
+		let infraProviderService = getInfraProviderInstance(stage.type);
 
 		await infraProviderService.promoteDeploymentToProduction({project, deployment, stage});
 

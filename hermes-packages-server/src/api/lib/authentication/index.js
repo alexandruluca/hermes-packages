@@ -56,10 +56,9 @@ module.exports = {
 				errOut.errors = err.results.errors;
 			}
 
-			console.error(errOut);
+			console.error(JSON.stringify(errOut, null, 4));
 
-			res.status(400).end(JSON.stringify(errOut));
-			return;
+			res.status(400).end(JSON.stringify(errOut, null, 4));
 		};
 	}
 };

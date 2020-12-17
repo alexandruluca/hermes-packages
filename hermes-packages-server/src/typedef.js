@@ -53,7 +53,6 @@
   * @typedef {Object} Project
   * @property {String} id
   * @property {String} name
-  * @property {'on-premise' | 'aws'} type
   * @property {Stage[]} stages
   */
 
@@ -61,6 +60,7 @@
   * @typedef {Object} Stage
   * @property {String} id
   * @property {String} name
+  * @property {'on-premise' | 'aws'} type
   * @property {'develop' | 'qa' | 'release' |'production'} band
   * @property {'lambda' | 's3' | null} resourceType
   * @property {'nodejs' | null} runtime

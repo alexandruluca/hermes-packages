@@ -3,31 +3,30 @@ const Collection = require('../lib/db/Collection');
 module.exports = Collection('project', {
 	"type": "object",
 	"required": [
-		"name",
-		"type"
+		"name"
 	],
 	"properties": {
 		"name": {
 			"type": "string"
 		},
-		"type": {
-			"type": "string",
-			"enum": [
-				"on-premise",
-				"aws"
-			]
-		},
 		"stages": {
 			"type": "array",
 			"items": {
 				"type": "object",
-				"required": ["id", "name", "band"],
+				"required": ["id", "name", "type", "band"],
 				"properties": {
 					"id": {
 						"type": "string"
 					},
 					"name": {
 						"type": "string"
+					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"on-premise",
+							"aws"
+						]
 					},
 					"band": {
 						"type": "string",

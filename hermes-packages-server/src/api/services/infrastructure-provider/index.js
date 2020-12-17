@@ -2,13 +2,13 @@ const logger = require('../../lib/logger');
 const {awsProviderService} = require('./aws/AwsProviderService');
 const {onPremProviderService} = require('./OnPremProviderService');
 
+const PROVIDER_LIST = ['aws', 'on-premise'];
+
 exports.getInstance = getInstance;
+exports.PROVIDER_LIST = PROVIDER_LIST;
 
 exports.getAllInstances = function () {
-	return [
-		getInstance('aws'),
-		getInstance('on-premise')
-	];
+	return PROVIDER_LIST.map(providerType => getInstance(providerType));
 }
 
 /**
