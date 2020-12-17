@@ -1,5 +1,8 @@
 const shush = require('shush');
-const configPath = '/Users/lucaalexandru/workspace/terria/hermes-packages/hermes-packages-server/config_aluca.json'; //path.join(dataDir, 'config_aluca.json');
+const path = require('path');
+const dataDir = process.env.dataDir || process.cwd();
+const configPath = path.join(dataDir, 'config.json');
+
 const config = shush(configPath);
 const logger = require('../logger');
 

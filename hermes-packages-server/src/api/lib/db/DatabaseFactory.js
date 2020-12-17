@@ -1,8 +1,6 @@
-const path = require('path');
 const Loki = require('lokijs');
-const databaseDir = require('../config').databaseDir;
 const {GistAdapter} = require('./GistAdapter');
-const DB_NAME = path.join(databaseDir, 'hermes-packages.json');
+const DB_NAME = 'hermes-packages.json';
 
 const isTestEnv = process.env.NODE_ENV === 'test';
 

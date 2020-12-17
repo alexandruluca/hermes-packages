@@ -1,6 +1,5 @@
 {
 	"port": 8090,
-	"databaseDir": "/Users/lucaalexandru/workspace/terria/hermes-packages/database",
 	"user": {
 		"username": "package",
 		"password": "ewfj0gre"
@@ -16,11 +15,11 @@
 	},
 	"jiraLinkTemplate": "https://hermes.atlassian.net/browse/{{issueId}}",
 	"githubApi": {
-		"accessToken": "2a0dc6e191ef7644724ed544654108fa3c841685",
+		"accessToken": "b2f96f977f0ef309f3fe8e3e4356148ae5e60e5c",
 		"owner": "specula-io",
-		"clientId": "d078dfb8b4eb0175d59f",
-		"clientSecret": "f5da3cebb6532d2e7f562acaa2df8b080b228216",
-		"callback": "http://localhost:8090/api/callback"
+		"clientId": "334babf32d2ac16d392f",
+		"clientSecret": "0a190b8799d123b2210a76ddb736fa535e467b5f",
+		"callback": "http://localhost:8090/api/docs/api/callback"
 	},
 	"jiraApi": {
 		"userEmail": "samuel.nova+external@hermes.com",
