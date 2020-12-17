@@ -1,18 +1,7 @@
-<p-dialog *ngIf="deployment"
-    header="{{deployment.pullRequestMeta.issueNumber}}/{{deployment.pullRequestMeta.pullId}}"
-    [visible]="true" [responsive]="true" showEffect="fade" [modal]="true" [style]="{width: '60%'}">
-    <div>
-      <div *ngFor="let event of deploymentEvents">
-          {{'deploymentStatusUpdate.' + event.eventName | translate:event.data}}
-          <i class="pi" [ngClass]="{'pi-spin pi-spinner': event.action === 'start', 'pi-check': event.action === 'end', 'pi-times': event.action === 'failure'}"></i>
-      </div>
-    </div>
-    <p-footer>
-        <div class="ui-dialog-buttonpane ui-helper-clearfix">
-            <button
-              type="button" pButton (click)="closeDialog()"
-              label="Ok">
-            </button>
-        </div>
-    </p-footer>
-</p-dialog>
+<div>
+  <div *ngFor="let event of deploymentEvents">
+    {{'deploymentStatusUpdate.' + event.eventName | translate:event.data}}
+    <i class="pi"
+      [ngClass]="{'pi-spin pi-spinner': event.action === 'start', 'pi-check': event.action === 'end', 'pi-times': event.action === 'failure'}"></i>
+  </div>
+</div>

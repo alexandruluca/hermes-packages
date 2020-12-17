@@ -23,7 +23,7 @@ export class UserService {
   private api: Api;
   private localStorageService: LocalStorageService;
   private router: Router;
-  private  zone: NgZone;
+  private zone: NgZone;
   private config: Config;
   private http: HttpClient;
 
@@ -135,12 +135,12 @@ export class UserService {
     return this.localStorageService.getItem(Keys.USER_PROFILE);
   }
 
-/*   public loginUser(userEmail: string, {accessToken, expiresAt}: {accessToken: string, expiresAt: number}) {
-    return this.api.userApi.login(userEmail, accessToken).then(() => {
-      this.localStorageService.setItem(USER_LOGGED_IN_KEY, true);
-      this.localStorageService.setItem(TOKEN_EXPIRES_AT, expiresAt);
-    });
-  } */
+  /*   public loginUser(userEmail: string, {accessToken, expiresAt}: {accessToken: string, expiresAt: number}) {
+      return this.api.userApi.login(userEmail, accessToken).then(() => {
+        this.localStorageService.setItem(USER_LOGGED_IN_KEY, true);
+        this.localStorageService.setItem(TOKEN_EXPIRES_AT, expiresAt);
+      });
+    } */
 
   isUserLoggedIn(): boolean {
     return true;

@@ -10,7 +10,7 @@ db.initializeDatabase().then(() => {
 	migrations.forEach(({version, description, run: runMigration}) => {
 		let existingMigration = migrationColl.findOne({version});
 
-		if(!existingMigration) {
+		if (!existingMigration) {
 			logger.info(`running "migration ${version}:${description}"`);
 			runMigration();
 
@@ -28,11 +28,11 @@ db.initializeDatabase().then(() => {
 function getMigrations() {
 	const migrationDir = path.join(__dirname, './api/migrations');
 
-	let migrationDirs = fs.readdirSync(migrationDir);
+	let files = fs.readdirSync(migrationDir);
 
-	return migrationDirs.map(subdir => {
-		let migration = require(path.join(migrationDir, subdir));
-		migration.version = subdir;
+	return files.filter(fileName => fileName.endsWith('.js')).map(fileName => {
+		let migration = require(path.join(migrationDir, fileName));
+		migration.version = fileName;
 		return migration;
 	});
 }

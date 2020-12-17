@@ -1,6 +1,6 @@
 import {Injectable, NgZone} from '@angular/core';
 import {Api} from '../common/api.service';
-import {Deployment, DeploymentField, DeploymentStatus, DeploymentStatusEvent, PullRequestStatus, DeploymentBand} from '../common/models/domain/Deployment';
+import {Deployment, DeploymentField, DeploymentStatus, DeploymentStatusEvent, PullRequestStatus, DeploymentBand, Project} from '../common/models/domain/Deployment';
 import {ServerDeployment} from '../common/models/domain/ServerDeployment';
 import {Subject, Observable} from 'rxjs';
 import io from 'socket.io-client';
@@ -64,7 +64,7 @@ export class DeploymentService {
     const pageResult: PageResult<Deployment> = await this.clientInstance.apis.deployments.getDeployments({options});
 
     pageResult.items.forEach(deployment => {
-      if (deployment.pullRequestMeta && deployment.pullRequestMeta.sourceBranch) {}
+      if (deployment.pullRequestMeta && deployment.pullRequestMeta.sourceBranch) { }
       this.addDeploymentMetaInfo(deployment);
     });
 
@@ -75,9 +75,9 @@ export class DeploymentService {
     this.serverListObservable.subscribe(func);
   }
 
-/**
- * Register listeners for application update event. Fires when an application has been updated by hermes-package-updater
- */
+  /**
+   * Register listeners for application update event. Fires when an application has been updated by hermes-package-updater
+   */
   onApplicationUpdated(func: (appMeta) => any) {
     this.applicationUpdatedObservable.subscribe(func);
   }
@@ -138,12 +138,12 @@ export class DeploymentService {
     });
   }
 
-  signalDeploymentInstall(options: {deploymentName: string, pullId: string, serverTags: string[]}) {
+  signalDeploymentInstall(options: {deploymentName: string, pullId: string, stageIdentifier: string}) {
     return this.clientInstance.apis.deployments.signalDeploymentInstall({
       deploymentName: options.deploymentName,
       pullId: options.pullId,
       payload: {
-        serverTags: options.serverTags
+        stageIdentifier: options.stageIdentifier
       }
     });
   }

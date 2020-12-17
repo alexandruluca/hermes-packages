@@ -1,7 +1,7 @@
-import { Component, OnInit, Input, Output, OnChanges } from '@angular/core';
+import {Component, OnInit, Input, Output, OnChanges} from '@angular/core';
 import {DeploymentService} from '../deployment.service';
 import {DeploymentStatusEvent, Deployment} from 'src/app/common/models/domain/Deployment';
-import { EventEmitter } from '@angular/core';
+import {EventEmitter} from '@angular/core';
 
 @Component({
   selector: 'app-deployment-progress-indicator',
@@ -9,9 +9,7 @@ import { EventEmitter } from '@angular/core';
   styleUrls: ['./deployment-progress-indicator.component.css']
 })
 export class DeploymentProgressIndicatorComponent implements OnInit, OnChanges {
-  private visible = false;
   private deploymentService: DeploymentService;
-  public displayDialog = true;
   public deploymentEvents: DeploymentStatusEvent[] = [];
   public _deployment: Deployment;
   @Output()
@@ -49,18 +47,10 @@ export class DeploymentProgressIndicatorComponent implements OnInit, OnChanges {
 
   @Input()
   set deployment(deployment: Deployment) {
-    this.visible = true;
     this._deployment = deployment;
   }
 
   get deployment(): Deployment {
     return this._deployment;
   }
-
-  closeDialog() {
-    this.visible = false;
-    this.closed.emit('closed');
-    console.log('emitting closed');
-  }
-
 }

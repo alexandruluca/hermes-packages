@@ -5,6 +5,16 @@ export enum DeploymentBand {
   QA = 'qa'
 }
 
+export interface Stage {
+  name: string,
+  type: 'on-premise' | 'aws';
+  band: 'qa' | 'production';
+  regions: string[],
+  resourceName?: string,
+  resourceType?: string,
+  runtime?: 'nodejs'
+}
+
 export enum DeploymentStatus {
   DONE = 'Done',
   TODO = 'To Do',
@@ -32,6 +42,22 @@ export interface Deployment {
   createdAt: string;
   updatedAt: string;
   $meta: object;
+}
+
+export interface Project {
+  name: string;
+  stages: ProjectStage[];
+  $meta?: object;
+}
+
+export interface ProjectStage {
+  band: string;
+  type: 'on-premise' | 'aws';
+  resourceType?: string;
+  resourceName?: string;
+  regions?: string[];
+  runtime?: string;
+
 }
 
 export enum DeploymentField {

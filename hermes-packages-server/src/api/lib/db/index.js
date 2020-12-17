@@ -5,8 +5,8 @@ const Ajv = require('ajv');
 const ajv = new Ajv();
 const {DatabaseFactory} = require('./DatabaseFactory');
 
-loki.Collection.prototype.insert = (function(original) {
-	return function(doc) {
+loki.Collection.prototype.insert = (function (original) {
+	return function (doc) {
 		if (this.validate && !this.validate(doc)) {
 			throw new Error(extractErrorMessages(this.validate.errors));
 		}
@@ -16,8 +16,8 @@ loki.Collection.prototype.insert = (function(original) {
 	};
 })(loki.Collection.prototype.insert);
 
-loki.Collection.prototype.update = (function(original) {
-	return function(doc) {
+loki.Collection.prototype.update = (function (original) {
+	return function (doc) {
 		if (this.validate && !this.validate(doc)) {
 			throw new Error(extractErrorMessages(this.validate.errors));
 		}
@@ -28,7 +28,7 @@ loki.Collection.prototype.update = (function(original) {
 })(loki.Collection.prototype.update);
 
 function extractErrorMessages(errors) {
-	return errors.map(function(err) {
+	return errors.map(function (err) {
 		let msg = `${err.dataPath.substring(1)} ${err.message}`;
 
 		if (err.params.allowedValues) {
@@ -41,7 +41,7 @@ function extractErrorMessages(errors) {
 let db = null;
 
 module.exports.initializeDatabase = function () {
-	if(db) {
+	if (db) {
 		return Promise.resolve();
 	}
 
@@ -88,6 +88,18 @@ class Collection {
 		return clone(obj);
 	}
 
+	upsert(query, obj) {
+		let existingObj = this.findOne(query);
+
+		if (existingObj) {
+			let fullObject = Object.assign(existingObj, obj);
+			this.update(fullObject);
+		} else {
+			let fullObject = Object.assign(query, obj);
+			this.insert(fullObject);
+		}
+	}
+
 	distinct(property, query) {
 		let docs = this.collection.find(query);
 
@@ -120,6 +132,10 @@ class Collection {
 	remove(query) {
 		if (!query || Object.keys(query).length === 0) {
 			throw new Error('missing query');
+		}
+
+		if (query.$loki) {
+			return this.collection.remove(query);
 		}
 
 		return this.collection.chain().find(query).remove();

@@ -1,0 +1,42 @@
+{
+	"port": 8090,
+	"databaseDir": "/Users/lucaalexandru/workspace/terria/hermes-packages/database",
+	"user": {
+		"username": "package",
+		"password": "ewfj0gre"
+	},
+	"awsDeployments": {
+		"bucket": "hermes-files-alexandru",
+		"accessKeyId": "AKIA2CD4JLUSSEWZKW6T",
+		"secretAccessKey": "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",
+		"defaultRegion": "eu-west-1"
+	},
+	"webClientConfig": {
+		"githubApiClientId": "d078dfb8b4eb0175d59f"
+	},
+	"jiraLinkTemplate": "https://hermes.atlassian.net/browse/{{issueId}}",
+	"githubApi": {
+		"accessToken": "2a0dc6e191ef7644724ed544654108fa3c841685",
+		"owner": "specula-io",
+		"clientId": "d078dfb8b4eb0175d59f",
+		"clientSecret": "f5da3cebb6532d2e7f562acaa2df8b080b228216",
+		"callback": "http://localhost:8090/api/callback"
+	},
+	"jiraApi": {
+		"userEmail": "samuel.nova+external@hermes.com",
+		"accessToken": "rFDervDCF9u2mnBHRn9Y98AC"
+	},
+	"jenkins": {
+		"username": "hermes-packages",
+		"password": "yV)$EUve++?@7sPp",
+		"url": "https://integration-lbd5-jenkins.hermes.com",
+		"secret": "my-super-secret-token"
+	},
+	"slack": {
+		"authToken": "xoxp-885170337158-882972996805-877749378289-6025032b0833c705f1109d985544e5b3",
+		"channelId": "random"
+	},
+	"issueProvider": "github",
+	"storageProvider": "github",
+	"disablePullRequestReview": true
+}

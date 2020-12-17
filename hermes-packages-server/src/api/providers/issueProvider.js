@@ -3,7 +3,6 @@ const {githubApi} = require('../lib/github');
 const config = require('../lib/config');
 const {issueProvider, jiraLinkTemplate} = config;
 const {ServiceError, StatusCode} = require('../lib/error');
-require('../../../typedef');
 
 class IssueProvider {
 	isValidIssue(issueNumber, projectName) {

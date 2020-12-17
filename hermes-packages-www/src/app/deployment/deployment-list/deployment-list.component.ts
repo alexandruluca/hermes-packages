@@ -1,10 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {DeploymentService} from '../deployment.service';
-import {Deployment, DeploymentStatus, DeploymentBand, PullRequestStatus} from '../../common/models/domain/Deployment';
+import {Deployment, DeploymentStatus, DeploymentBand, PullRequestStatus, Stage} from '../../common/models/domain/Deployment';
 import {SelectItem} from 'primeng/components/common/selectitem';
 import {MessageService} from 'primeng/api';
 import {ColumnFactory, ColumnMode} from './ColumnFactory';
-import {ActivatedRoute, Router} from '@angular/router';
 import {PresentationDeployment, DeploymentMapper} from 'src/app/common/models/presentation/Deployment';
 import {DeploymentContext} from 'src/app/common/models/domain/DeploymentContext';
 
@@ -36,6 +35,8 @@ export class DeploymentListComponent implements OnInit {
   doneTransitionedDeployment: Deployment;
   displayDialog: boolean;
   cols: any[];
+  updateInProgress = false;
+  updateInitialized = false;
   deploymentNameOptions: SelectItem[];
   deploymentStatuses: SelectItem[];
   deploymentTypes: SelectItem[] = [
@@ -44,7 +45,7 @@ export class DeploymentListComponent implements OnInit {
   ];
   targetInstallServerTag: string;
   deploymentContext: DeploymentContext;
-  deploymentServerTagOptions: SelectItem[];
+  deploymentServerTagOptions: (SelectItem & {stage: Stage})[];
   projectOptions: SelectItem[];
   deploymentBand: SelectItem[] = [
     {label: 'ALL', value: ''},
@@ -206,32 +207,55 @@ export class DeploymentListComponent implements OnInit {
     this.installableDeployment = deployment;
 
     let servers = this.deploymentContext.connectedServers.filter(server => {
-      return server.deploymentMeta.some(_deployment => _deployment.deploymentName === deployment.name);
+      return server.band === this.installBand;
     });
+
+    console.log(servers);
 
     this.deploymentServerTagOptions = servers.reduce((tags, server) => {
       tags.push({
         value: server.tag,
-        label: server.tag
+        label: server.tag,
+        stage: server.stage
       });
       return tags;
 
     }, []);
+
 
     if (this.deploymentServerTagOptions[0]) {
       this.targetInstallServerTag = this.deploymentServerTagOptions[0].value;
     }
   }
 
+  get stage(): Stage {
+    if (!this.deploymentServerTagOptions) {
+      return;
+    }
+    let server = this.deploymentServerTagOptions.find(s => {
+      return s.value === this.targetInstallServerTag;
+    });
+
+    return server && server.stage;
+  }
+
+  closeDialog() {
+    this.displayDialog = false;
+    this.updateInitialized = false;
+  }
+
   async signalDeploymentInstall() {
     const isPullRequest = this.installableDeployment.pullRequestMeta;
+
+    this.updateInProgress = true;
+    this.updateInitialized = true;
 
     try {
       if (isPullRequest) {
         await this.deploymentService.signalDeploymentInstall({
           deploymentName: this.installableDeployment.name,
           pullId: this.installableDeployment.pullRequestMeta.pullId,
-          serverTags: [this.targetInstallServerTag]
+          stageIdentifier: this.targetInstallServerTag
         });
       } else {
         await this.deploymentService.promoteDeployment({
@@ -243,7 +267,7 @@ export class DeploymentListComponent implements OnInit {
     } catch (err) {
       this.messageService.add({severity: 'error', summary: err.message, detail: err.message});
     } finally {
-      this.displayDialog = false;
+      this.updateInProgress = false;
     }
   }
 

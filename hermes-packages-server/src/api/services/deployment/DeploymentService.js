@@ -1,30 +1,23 @@
 const {ServiceError, StatusCode} = require('../../lib/error');
-const {validateBand, getSemverCmpFunction, denormalizeVersion, normalizeVersion, validateRequiredParam} = require('../../util');
+const util = require('../../util');
 const {isMobileApplicationDeployment} = require('../../util/application-build');
 const {getSequence, SEQUENCES} = require('./utils/sequence');
 const aws = require('../../lib/aws');
 const semver = require('semver');
 const logger = require('../../lib/logger');
 const deploymentCollection = require('../../collections/deployment');
+const projectCollection = require('../../collections/project');
 const deploymentSequenceCollection = require('../../collections/deployment-sequence');
-const io = require('../../lib/io');
+const {eventBusService} = require('../event-bus/EventBusService');
 const _ = require('lodash');
 const config = require('../../lib/config');
-const awsLambdaService = require('../aws-lambda');
-
-require('../../../../typedef');
+const {getInstance: getInfraProviderInstance, getAllInstances: getAllInfraProviderInstances} = require('../infrastructure-provider');
+const {DeploymentBand} = require('./const');
 
 const ErrorCode = {
 	DEPLOYMENT_EXISTS: 'deployment_exists',
 	DEPLOYMENT_NOT_FOUND: 'deployment_not_found',
 	DEPLOYMENT_ILLEGAL_STATE: 'deployment_illegal_state'
-};
-
-const DeploymentBand = {
-	DEVELOP: 'develop',
-	RELEASE: 'release',
-	PRODUCTION: 'production',
-	QA: 'qa'
 };
 
 const PullRequestStatus = {
@@ -98,7 +91,7 @@ class DeploymentService {
 			let isAscending = sort.direction === 'asc';
 			resultSet = resultSet.simplesort(sort.property, isAscending);
 		} else {
-			let sortFn = getSemverCmpFunction('version', {asc: false});
+			let sortFn = util.getSemverCmpFunction('version', {asc: false});
 			resultSet = resultSet.sort(sortFn);
 		}
 
@@ -177,6 +170,54 @@ class DeploymentService {
 
 	/**
 	 * @param {Deployment} deployment
+	 */
+	canCreateDeployment(deployment) {
+		if (deployment.band === DeploymentBand.QA) {
+			return {
+				canCreate: true
+			};
+		}
+
+		let isRelease = deployment.band === DeploymentBand.RELEASE;
+		let existingDeployment = deploymentCollection.findOne(deployment);
+
+		if (!existingDeployment && !isRelease) {
+			return {
+				canCreate: true
+			};
+		}
+
+		if (isRelease) {
+			let lastDevelopDeployment = this.getLastDevelopDeploymeny(deployment.name);
+
+			if (!lastDevelopDeployment) {
+				return {
+					canCreate: false,
+					message: 'release deployment requires develop deployment to exist, none was found'
+				}
+			}
+
+			// last version is always updatable
+			if (lastDevelopDeployment.version === existingDeployment.version) {
+				return {
+					canCreate: true
+				};
+			}
+
+			return {
+				canCreate: false,
+				message: 'only last release deployment version is updatable'
+			}
+		}
+
+		return {
+			canCreate: false,
+			message: 'deployment already exists'
+		};
+	}
+
+	/**
+	 * @param {Deployment} deployment
 	 * @param {Object} options
 	 * @param {Boolean=} options.overrideExistingDeployment
 	 */
@@ -185,7 +226,7 @@ class DeploymentService {
 		let serverTag = deployment.serverTag;
 		let isPullRequest = !!deployment.pullRequestMeta;
 
-		deployment.version = denormalizeVersion(deployment.version);
+		deployment.version = util.denormalizeVersion(deployment.version);
 
 		let existingDeployment = this.getDeploymentByName(deployment.name);
 
@@ -216,6 +257,8 @@ class DeploymentService {
 		}
 
 		let deploymentName = this.getDeploymentName({...deployment, isHotfix, serverTag});
+
+		console.log('override existing', overrideExistingDeployment);
 
 		if (!isPullRequest && !overrideExistingDeployment) {
 			this.validateDeployment(deployment);
@@ -276,7 +319,7 @@ class DeploymentService {
 
 		let deployments = deploymentCollection.find(query);
 
-		let sortFn = getSemverCmpFunction('version', {asc: false});
+		let sortFn = util.getSemverCmpFunction('version', {asc: false});
 
 		deployments.sort(sortFn);
 
@@ -357,8 +400,7 @@ class DeploymentService {
 		if (existingPackage) {
 			if (band === DeploymentBand.RELEASE) {
 				// validate that the last release deployment always matches the last develop deployment
-				let query = {band: DeploymentBand.DEVELOP, name};
-				let lastDevelopDeployment = this.getLastDeploymentSequence(query);
+				let lastDevelopDeployment = this.getLastDevelopDeploymeny(name);
 
 				if (!lastDevelopDeployment) {
 					throw new ServiceError({
@@ -382,6 +424,11 @@ class DeploymentService {
 				code: ErrorCode.DEPLOYMENT_EXISTS
 			});
 		}
+	}
+
+	getLastDevelopDeploymeny(name) {
+		let query = {band: DeploymentBand.DEVELOP, name};
+		return this.getLastDeploymentSequence(query);
 	}
 
 	/**
@@ -427,13 +474,10 @@ class DeploymentService {
 	 * @param {Deployment} deployment
 	 */
 	async getDownloadUrl(deployment) {
-		let fileName = this.getDeploymentName(deployment);
-
-		let url = await aws.getDownloadUrl(fileName);
-
+		let gitTag = util.getGitTagNameByDeployment(deployment);
 		return {
-			url,
-			fileName
+			url: `https://github.com/${config.githubOwner}/${deployment.name}/releases/download/${gitTag}/deployment-package`,
+			fileName: 'deployment-package'
 		};
 	}
 
@@ -470,7 +514,7 @@ class DeploymentService {
 
 		let deploymentName = name;
 
-		version = normalizeVersion(version, band);
+		version = util.normalizeVersion(version, band);
 
 		if (!deploymentName.endsWith(version)) {
 			deploymentName = `${deploymentName}-${version}`;
@@ -496,14 +540,7 @@ class DeploymentService {
 	 * @param {Deployment} deployment
 	 */
 	getTagNameByDeployment(deployment) {
-		let gitTag = normalizeVersion(deployment.version, deployment.band);
-
-		if (deployment.pullRequestMeta) {
-			let prMeta = deployment.pullRequestMeta
-			gitTag += `-prid-${prMeta.pullId}-${prMeta.issueNumber}`;
-		}
-
-		return gitTag
+		return util.getGitTagNameByDeployment(deployment);
 	}
 
 	getHotfixVersion(deploymentVersion, serverTag, band) {
@@ -514,7 +551,7 @@ class DeploymentService {
 			serverTag: serverTag
 		};
 
-		let sortFn = getSemverCmpFunction('hotfixVersion', {asc: false});
+		let sortFn = util.getSemverCmpFunction('hotfixVersion', {asc: false});
 
 		let lastHotfix = deploymentCollection.find(query, {sort: sortFn, limit: 1})[0];
 		let lastHotfixVersion = (lastHotfix && lastHotfix.hotfixVersion) || '0.0.0';
@@ -659,7 +696,7 @@ class DeploymentService {
 			query.pullRequestMeta = {$exists: false};
 		}
 
-		validateBand(band);
+		util.validateBand(band);
 
 		let filterServerTag = serverTag && isProduction;
 
@@ -667,7 +704,7 @@ class DeploymentService {
 			query.serverTags = {$contains: serverTag};
 		}
 
-		let sortFn = getSemverCmpFunction('version', {asc: !getLatestVersion});
+		let sortFn = util.getSemverCmpFunction('version', {asc: !getLatestVersion});
 		let limit = getLatestVersion ? 1 : null;
 
 		let items = deploymentCollection
@@ -702,7 +739,7 @@ class DeploymentService {
 		let seedBand = isReleaseBand ? DeploymentBand.DEVELOP : band;
 		let deploymentObject = this.getLastDeploymentSequence({band: seedBand, name: deploymentName});
 
-		seedValues.sort(getSemverCmpFunction('version', {asc: false}));
+		seedValues.sort(util.getSemverCmpFunction('version', {asc: false}));
 
 		let versionSequence = JSON.parse(JSON.stringify(seedValues[0]));
 
@@ -753,7 +790,7 @@ class DeploymentService {
 	 * @private
 	 */
 	getLastDeploymentsMap(band, name) {
-		validateBand(band);
+		util.validateBand(band);
 
 		let query = {
 			band
@@ -778,52 +815,212 @@ class DeploymentService {
 		}, {});
 	}
 
-	broadcastDeploymentInstall(deployment) {
-		return io.broadcastMessage('install-deployment', deployment);
+	emitDeploymentInstall(deployment) {
+		console.log('emitDeploymentInstall:: should move in on-prem')
+		return eventBusService.emitMessage('install-deployment', deployment);
 	}
 
-	broadCasNewDeploymentAvailable(deployment) {
-		return io.broadcastMessage('new-deployment', deployment);
-	}
-
-	/**
-	 * @param {Object} query
-	 * @param {String[]} query.serverTags
-	 * @param {String} query.deploymentName
-	 * @param {String} query.band
-	 * @param {Object} update
-	 * @param {String} update.version
-	 */
-	updateServerMeta(query, update) {
-		return io.updateServerMeta(query, update);
+	emitNewDeploymentAvailable(deployment) {
+		console.log('emitNewDeploymentAvailable:: should move in on-prem')
+		return eventBusService.emitMessage('new-deployment', deployment);
 	}
 
 	/**
-	 *
-	 * @param {Deployment} deployment
-	 * @param {String} aliasName - lambda alias name
+	 * @returns DeploymentContext
 	 */
-	async deployLambdaFunction(deployment, aliasName) {
-		validateRequiredParam(deployment, 'deployment');
-		validateRequiredParam(aliasName, 'aliasName');
+	getPullRequestDeploymentContext(band) {
+		/**
+		 * @type Project[]
+		 */
+		let projects = projectCollection.find();
 
-		let isDeploymentUploaded = await this.isDeploymentUploaded(deployment);
-		let deploymentName = this.getDeploymentName(deployment);
+		return projects.reduce((context, project) => {
+			project.stages.forEach(stage => {
+				if (stage.band !== band) {
+					return;
+				}
+				context.connectedServers.push({
+					band: stage.band,
+					deploymentName: project.name,
+					tag: util.getStageIdentifier(stage),
+					stage
+				});
+			});
+			context.deploymentNames.push(project.name);
+			return context;
+		}, {
+			connectedServers: [], // band + tag
+			deploymentNames: [], // string,
+			projectKeys: [] // string
+		});
+	}
 
-		if (!isDeploymentUploaded) {
+	/**
+	 * Handles a new deployment install
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.pullId
+	 * @param {String} opt.stageIdentifier
+	 */
+	async handleDeploymentInstall({deploymentName, pullId, stageIdentifier}) {
+		let {project, stage} = this._getUpdatePrerequisites({deploymentName, pullId, stageIdentifier});
+
+		/**
+		 * @type Deployment
+		 */
+		let deployment = this.getDeploymentByPullId({deploymentName, pullId});
+
+		this._assertExistingDeployment(deployment, deploymentName);
+
+		let infraProviderService = getInfraProviderInstance(stage.type);
+
+		await infraProviderService.handleDeploymentInstall({stage, project, deployment});
+	}
+
+	/**
+	 * Reset a stage to release
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.stageIdentifier
+	 */
+	async resetDeploymentToRelease({deploymentName, stageIdentifier}) {
+		let {project, stage} = this._getUpdatePrerequisites({deploymentName, stageIdentifier});
+
+		/**
+		 * @type Deployment
+		 */
+		let deployment = this.getLastDeployment({band: DeploymentBand.RELEASE, name: deploymentName});
+
+		this._assertExistingDeployment(deployment, deploymentName);
+
+		await getInfraProviderInstance(stage.type).resetDeploymentToRelease({project, deployment, stage});
+	}
+
+	/**
+	 * Promote release deployment to production
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.version
+	 * @param {String} opt.stageIdentifier
+	 */
+	async promoteDeploymentToProduction({deploymentName, version, stageIdentifier}) {
+		let serverTag = stageIdentifier;
+		let band = DeploymentBand.RELEASE;
+
+		let {project, stage} = this._getUpdatePrerequisites({deploymentName, stageIdentifier});
+
+		let deployment = deploymentCollection.findOne({
+			band,
+			version,
+			name: deploymentName
+		});
+
+		if (!deployment) {
 			throw new ServiceError({
-				message: `deployment is not uploaded for '${deploymentName}'`,
-				statusCode: StatusCode.BAD_REQUEST
+				message: `deployment '${deploymentName}@${version}' not found`,
+				statusCode: StatusCode.NOT_FOUND,
+				code: ErrorCode.DEPLOYMENT_NOT_FOUND
 			});
 		}
 
-		await awsLambdaService.deployLambdaFunction({
-			functionName: deployment.name,
-			s3FileName: deploymentName,
-			aliasName,
-			band: deployment.isProduction ? DeploymentBand.PRODUCTION : deployment.band,
-			deploymentVersion: deployment.version
+		let query = {
+			band,
+			isProduction: true,
+			name: deploymentName
+		};
+
+		let sort = util.getSemverCmpFunction('version', {asc: false});
+
+		let latestProdDeployment = deploymentCollection.find(query, {sort, limit: 1})[0];
+
+		if (latestProdDeployment && latestProdDeployment.serverTags.includes(serverTag)) {
+			let cmpRes = semverCmp(latestProdDeployment.version, version);
+
+			if (cmpRes === 1) {
+				throw new Error(`unable to promote a lower version then '${latestProdDeployment.version}'`);
+			} else if (cmpRes === 0) {
+				throw new Error(`deployment ${deploymentName}@${version} is already promoted for server '${serverTag}'`);
+			}
+		}
+
+		deployment.isProduction = true;
+		deployment.serverTags = deployment.serverTags || []
+
+		if (!deployment.serverTags.includes(serverTag)) {
+			deployment.serverTags.push(serverTag);
+		}
+
+		let infraProviderService = getInfraProviderInstance(stage.type);
+
+		await infraProviderService.promoteDeploymentToProduction({project, deployment, stage});
+
+		this.updateDeployment(deployment);
+	}
+
+	/**
+	 * Get project, deployment, stage for performing stage deployment update
+	 * @param {Object} opt
+	 * @param {String} opt.deploymentName
+	 * @param {String} opt.stageIdentifier
+	 */
+	_getUpdatePrerequisites({deploymentName, stageIdentifier}) {
+		/**
+		 * @type Project
+		 */
+		let project = projectCollection.findOne({name: deploymentName});
+
+		if (!project) {
+			throw new ServiceError({message: `project not found for name=${deploymentName}`, statusCode: StatusCode.NOT_FOUND});
+		}
+
+		/**
+		 * @type Stage
+		 */
+		let stage = util.stageIdentifierToStage(stageIdentifier);
+
+		let existingStage = project.stages.find(s => s.name === stage.name && s.band === stage.band);
+
+		if (!existingStage) {
+			throw new ServiceError({message: `stage not found for name=${stageIdentifier}`, statusCode: StatusCode.NOT_FOUND});
+		}
+
+		return {
+			project,
+			stage: existingStage
+		};
+	}
+
+	/**
+	 * @param {Deployment} deployment
+	 * @param {String} deploymentName
+	 */
+	_assertExistingDeployment(deployment, deploymentName) {
+		if (!deployment) {
+			throw new ServiceError({message: `deployment ${deploymentName} not found`, statusCode: StatusCode.NOT_FOUND});
+		}
+	}
+
+	getServerDeploymentMeta(band) {
+		const lastReleaseDeployment = this.getLastDeploymentsMap('release');
+		const lastDevelopDeployment = this.getLastDeploymentsMap('develop');
+
+		let instances = getAllInfraProviderInstances();
+
+		let serverDeploymentList = instances.reduce((serverDeploymentList, instance) => {
+			serverDeploymentList.push(...instance.getServerDeploymentMeta(band));
+			return serverDeploymentList;
+		}, []);
+
+		serverDeploymentList.forEach(deployment => {
+			let name = deployment.deploymentName;
+			let lastDeployment = deployment.band === DeploymentBand.DEVELOP ? lastDevelopDeployment[name] : lastReleaseDeployment[name];
+
+			if (lastDeployment) {
+				deployment.lastVersion = util.denormalizeVersion(lastDeployment.version);
+			}
 		});
+
+		return serverDeploymentList;
 	}
 }
 
@@ -831,3 +1028,16 @@ exports.DeploymentService = DeploymentService;
 exports.ErrorCode = ErrorCode;
 exports.DeploymentBand = DeploymentBand;
 exports.PullRequestStatus = PullRequestStatus;
+
+function semverCmp(a, b) {
+	a = semver.coerce(a);
+	b = semver.coerce(b);
+
+	if (semver.gt(a, b)) {
+		return 1;
+	}
+	if (semver.gt(b, a)) {
+		return -1;
+	}
+	return 0;
+}

@@ -20,9 +20,6 @@
 				"password"
 			]
 		},
-		"awsPackages": {
-			"$ref": "#/definitions/aws"
-		},
 		"awsDeployments": {
 			"$ref": "#/definitions/aws"
 		},
@@ -121,7 +118,6 @@
 	},
 	"required": [
 		"port",
-		"awsPackages",
 		"awsDeployments",
 		"databaseDir",
 		"webClientConfig",

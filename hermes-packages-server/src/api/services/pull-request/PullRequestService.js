@@ -6,13 +6,11 @@ const deploymentSequenceCollection = require('../../collections/deployment-seque
 const logger = require('../../lib/logger');
 const {ServiceError, StatusCode} = require('../../lib/error');
 const {parseXml} = require('../../util/xml');
-const io = require('../../lib/io');
 const path = require('path');
 const config = require('../../lib/config');
 const CONFIG_XML_PATH = 'client/config.xml';
 const issueProvider = require('../../providers/issueProvider');
-
-require('../../../../typedef');
+const {eventBusService} = require('../event-bus/EventBusService');
 
 const EventType = {
 	JIRA_STATUS_UPDATE: 'jira-status-update',
@@ -52,23 +50,13 @@ class PullRequestService {
 		this.pullId = this.deployment.pullRequestMeta.pullId;
 		this.issueNumber = this.deployment.pullRequestMeta.issueNumber;
 		this.jenkinsReleaseJobName = `${this.deploymentName}-release`;
-		this.broadcastedEventData = {};
 	}
 
-	broadcastMessage(eventName, {data = null, isCompleted = false, failure = false} = {}) {
-		if (data) {
-			this.broadcastedEventData[eventName] = data;
-		}
-		data = data || this.broadcastedEventData[eventName];
-
-		return io.broadcastMessage('deployment-status-update', {
-			eventName,
+	emitMessage(eventName, {data = null, isCompleted = false, failure = false} = {}) {
+		return eventBusService.emitDeploymentStatusUpdate(eventName, {
 			data,
-			action: failure ? 'failure' : (isCompleted ? 'end' : 'start'),
-			issueNumber: this.issueNumber,
-			targetBranch: this.targetBranch,
-			sourceBranch: this.sourceBranch,
-			pullId: this.pullId
+			isCompleted,
+			failure
 		});
 	}
 
@@ -147,7 +135,7 @@ class PullRequestService {
 			issueNumber,
 			jiraStatus: statusName
 		};
-		this.broadcastMessage(EventType.JIRA_STATUS_UPDATE, {data: eventData});
+		this.emitMessage(EventType.JIRA_STATUS_UPDATE, {data: eventData});
 
 		await issueProvider.updateTaskStatus({
 			issueNumber,
@@ -155,7 +143,7 @@ class PullRequestService {
 			projectName: deploymentName
 		});
 
-		this.broadcastMessage(EventType.JIRA_STATUS_UPDATE, {isCompleted: true});
+		this.emitMessage(EventType.JIRA_STATUS_UPDATE, {isCompleted: true});
 	}
 
 	/**
@@ -169,8 +157,8 @@ class PullRequestService {
 	 */
 	async handlePullRequestStatusUpdate({deployment, pullRequestStatus, userEmail}) {
 		/**
- 		* @type {Deployment} deploymentUpdate
- 		*/
+			* @type {Deployment} deploymentUpdate
+			*/
 		let deploymentUpdate = {
 			pullRequestMeta: {
 				status: pullRequestStatus
@@ -256,7 +244,7 @@ class PullRequestService {
 	async handlePullRequestMerge({deployment, userEmail}) {
 		await this.validateJenkinsReleaseJob();
 
-		this.broadcastMessage(EventType.VALIDATE_BRANCH_MERGEABILITY);
+		this.emitMessage(EventType.VALIDATE_BRANCH_MERGEABILITY);
 		let pullId = this.pullId;
 		let deploymentName = deployment.name;
 		let issueNumber = deployment.pullRequestMeta.issueNumber;
@@ -264,7 +252,7 @@ class PullRequestService {
 		let isMergeable = await githubApi.isPullRequestMergeable({repo: deploymentName, pullId});
 
 		if (!isMergeable) {
-			this.broadcastMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true, failure: true});
+			this.emitMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true, failure: true});
 			throw new ServiceError({
 				message: 'branch is not mergeable',
 				statusCode: StatusCode.CONFLICT
@@ -273,7 +261,7 @@ class PullRequestService {
 
 		await this.checkPullRequestReviews();
 
-		this.broadcastMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true});
+		this.emitMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true});
 
 		/**
 		* @type {Deployment} deploymentUpdate
@@ -295,12 +283,12 @@ class PullRequestService {
 				baseBranch: this.targetBranch,
 				targetBranch: this.sourceBranch
 			};
-			this.broadcastMessage(EventType.PULL_REQUEST_MERGE_BASE_BRANCH, {data: eventData});
+			this.emitMessage(EventType.PULL_REQUEST_MERGE_BASE_BRANCH, {data: eventData});
 
 			// merge the source branch into the pull request
 			await githubApi.mergeBranch({repo: deploymentName, sourceBranch: this.sourceBranch, targetBranch});
 
-			this.broadcastMessage(EventType.PULL_REQUEST_MERGE_BASE_BRANCH, {isCompleted: true});
+			this.emitMessage(EventType.PULL_REQUEST_MERGE_BASE_BRANCH, {isCompleted: true});
 
 			logger.info(`[${issueNumber}]: skipping merging pull request with id='${pullId}'`);
 			return;
@@ -326,8 +314,8 @@ class PullRequestService {
 		let isPullRequestReviewed = await githubApi.isPullRequestReviewed({repo: this.deploymentName, pullId: this.pullId});
 
 		if (!isPullRequestReviewed) {
-			this.broadcastMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true});
-			this.broadcastMessage(EventType.MISSING_REVIEW, {isCompleted: true, failure: true});
+			this.emitMessage(EventType.VALIDATE_BRANCH_MERGEABILITY, {isCompleted: true});
+			this.emitMessage(EventType.MISSING_REVIEW, {isCompleted: true, failure: true});
 
 			throw new ServiceError({
 				message: `missing review for pull-request with id='${this.pullId}'`,
@@ -337,11 +325,11 @@ class PullRequestService {
 	}
 
 	async validateJenkinsReleaseJob() {
-		this.broadcastMessage(EventType.VALIDATE_JENKINS_RELEASE_JOB);
+		this.emitMessage(EventType.VALIDATE_JENKINS_RELEASE_JOB);
 		let isExistingBuild = await jenkinsApi.isExistingJob(this.jenkinsReleaseJobName);
 
 		if (!isExistingBuild) {
-			this.broadcastMessage(EventType.VALIDATE_JENKINS_RELEASE_JOB, {isCompleted: true, failure: true});
+			this.emitMessage(EventType.VALIDATE_JENKINS_RELEASE_JOB, {isCompleted: true, failure: true});
 
 			throw new ServiceError({
 				message: `no job was found with name '${this.jenkinsReleaseJobName}'`,
@@ -349,18 +337,18 @@ class PullRequestService {
 			})
 		}
 
-		this.broadcastMessage(EventType.VALIDATE_JENKINS_RELEASE_JOB, {isCompleted: true});
+		this.emitMessage(EventType.VALIDATE_JENKINS_RELEASE_JOB, {isCompleted: true});
 	}
 
 	/**
 	 * Trigger a jenkins build job remotely
 	 */
 	async triggerReleaseBuild() {
-		this.broadcastMessage(EventType.TRIGGER_JENKINS_RELEASE_JOB);
+		this.emitMessage(EventType.TRIGGER_JENKINS_RELEASE_JOB);
 
 		await jenkinsApi.triggerRemoteBuild(this.jenkinsReleaseJobName)
 
-		this.broadcastMessage(EventType.TRIGGER_JENKINS_RELEASE_JOB, {isCompleted: true});
+		this.emitMessage(EventType.TRIGGER_JENKINS_RELEASE_JOB, {isCompleted: true});
 	}
 
 	async mergePullRequest() {
@@ -373,20 +361,20 @@ class PullRequestService {
 			sourceBranch: this.sourceBranch,
 			targetBranch: this.targetBranch
 		}
-		this.broadcastMessage(EventType.MERGE_PULL_REQUEST, {data: eventData});
+		this.emitMessage(EventType.MERGE_PULL_REQUEST, {data: eventData});
 		await this.branchApi.mergePullRequest(this.pullId, this.sourceBranch, this.targetBranch);
-		this.broadcastMessage(EventType.MERGE_PULL_REQUEST, {isCompleted: true});
+		this.emitMessage(EventType.MERGE_PULL_REQUEST, {isCompleted: true});
 
-		this.broadcastMessage(EventType.DELETE_BRANCH, {data: {sourceBranch: this.sourceBranch}});
+		this.emitMessage(EventType.DELETE_BRANCH, {data: {sourceBranch: this.sourceBranch}});
 		await this.branchApi.deleteBranch({branch: this.sourceBranch});
-		this.broadcastMessage(EventType.DELETE_BRANCH, {isCompleted: true});
+		this.emitMessage(EventType.DELETE_BRANCH, {isCompleted: true});
 
 		if (this.targetBranch === 'develop') {
 			this.updateDeploymentSequence(sequences);
 		}
 
 		if (!isVersionChanged) {
-			this.broadcastMessage(EventType.VERSION_NOT_CHANGED, {isCompleted: true});
+			this.emitMessage(EventType.VERSION_NOT_CHANGED, {isCompleted: true});
 			return;
 		}
 
@@ -428,7 +416,7 @@ class PullRequestService {
 	}
 
 	async mergeDevelopToRelease() {
-		this.broadcastMessage(EventType.MERGE_TO_RELEASE_BRANCH);
+		this.emitMessage(EventType.MERGE_TO_RELEASE_BRANCH);
 
 		// merge develop to release
 		await this.branchApi.mergeBranch({
@@ -436,7 +424,7 @@ class PullRequestService {
 			targetBranch: 'release'
 		});
 
-		this.broadcastMessage(EventType.MERGE_TO_RELEASE_BRANCH, {isCompleted: true});
+		this.emitMessage(EventType.MERGE_TO_RELEASE_BRANCH, {isCompleted: true});
 	}
 
 	async getVersionSequenceUpdatePayload() {
@@ -518,11 +506,11 @@ class PullRequestService {
 			let eventData = {
 				version: sequences.version
 			};
-			this.broadcastMessage(EventType.VERSION_BUMP, {data: eventData});
+			this.emitMessage(EventType.VERSION_BUMP, {data: eventData});
 
 			await this.putFileContents({ref: targetBranch, path: packageJsonLocation, content: packageJson});
 
-			this.broadcastMessage(EventType.VERSION_BUMP, {isCompleted: true});
+			this.emitMessage(EventType.VERSION_BUMP, {isCompleted: true});
 		}
 
 		if (configXml) {
@@ -531,10 +519,10 @@ class PullRequestService {
 				androidVersionCode: sequences.androidVersionCode
 			};
 
-			this.broadcastMessage(EventType.CONFIG_XML_VERSION_BUMP, {data: eventData});
+			this.emitMessage(EventType.CONFIG_XML_VERSION_BUMP, {data: eventData});
 			await this.updateConfigXml({targetBranch, sequences, configXml});
 
-			this.broadcastMessage(EventType.CONFIG_XML_VERSION_BUMP, {isCompleted: true});
+			this.emitMessage(EventType.CONFIG_XML_VERSION_BUMP, {isCompleted: true});
 		}
 	}
 

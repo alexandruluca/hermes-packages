@@ -1,6 +1,6 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule, APP_INITIALIZER} from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import {RouterModule, Routes} from '@angular/router';
 
 import {AppComponent} from './app.component';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
@@ -12,12 +12,14 @@ import {DeploymentListComponent} from './deployment/deployment-list/deployment-l
 import {LoginGuard} from './authorization/login.guard';
 import {ServerStateListComponent} from './server-state/server-state-list/server-state-list.component';
 import {ServerStateModule} from './server-state/server-state.module';
-import { OverviewComponent } from './overview/overview.component';
-import { SidebarComponent } from './sidebar/sidebar.component';
+import {OverviewComponent} from './overview/overview.component';
+import {SidebarComponent} from './sidebar/sidebar.component';
 import {DeploymentListPullRequestComponent} from './deployment/deployment-list/deployment-list-pr.component';
 import {DeploymentListReleaseCandidateComponent} from './deployment/deployment-list/deployment-list-rc.component';
 import {TranslateModule, TranslateLoader} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {ProjectListComponent} from './project/project-list/project-list.component';
+import {ProjectModule} from './project/project.module';
 
 export function initializeApp(api: Api) {
   return (): Promise<any> => {
@@ -30,12 +32,13 @@ export function HttpLoaderFactory(httpClient: HttpClient) {
 }
 
 const appRoutes: Routes = [
-  { path: 'deployments/pull-request', component: DeploymentListPullRequestComponent, canActivate: [LoginGuard] },
-  { path: 'deployments/release-candidate', component: DeploymentListReleaseCandidateComponent, canActivate: [LoginGuard] },
-  { path: 'deployments/:deploymentType', component: DeploymentListComponent, canActivate: [LoginGuard] },
-  { path: 'servers', component: ServerStateListComponent, canActivate: [LoginGuard] },
-  { path: 'overview', component: OverviewComponent, canActivate: [LoginGuard] },
-  { path: '**', redirectTo: '/deployments/pull-request', canActivate: [LoginGuard] }
+  {path: 'projects', component: ProjectListComponent, canActivate: [LoginGuard]},
+  {path: 'deployments/pull-request', component: DeploymentListPullRequestComponent, canActivate: [LoginGuard]},
+  {path: 'deployments/release-candidate', component: DeploymentListReleaseCandidateComponent, canActivate: [LoginGuard]},
+  {path: 'deployments/:deploymentType', component: DeploymentListComponent, canActivate: [LoginGuard]},
+  {path: 'servers', component: ServerStateListComponent, canActivate: [LoginGuard]},
+  {path: 'overview', component: OverviewComponent, canActivate: [LoginGuard]},
+  {path: '**', redirectTo: '/deployments/pull-request', canActivate: [LoginGuard]}
 ];
 
 @NgModule({
@@ -62,6 +65,7 @@ const appRoutes: Routes = [
     /* Custom */
     AuthenticationModule,
     DeploymentModule,
+    ProjectModule,
     ServerStateModule
   ],
   providers: [
@@ -69,4 +73,4 @@ const appRoutes: Routes = [
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

@@ -1,0 +1,163 @@
+<p-toast [style]="{marginTop: '80px'}"></p-toast>
+
+<p-toast position="center" key="c" [modal]="true" [baseZIndex]="5000">
+  <ng-template let-message pTemplate="message">
+    <div style="text-align: center">
+      <i class="pi pi-exclamation-triangle" style="font-size: 3em"></i>
+      <h3>{{message.summary}}</h3>
+      <p>{{message.detail}}</p>
+    </div>
+    <div class="ui-g ui-fluid">
+      <div class="ui-g-6">
+        <button type="button" pButton label="Yes" class="ui-button-success"></button>
+      </div>
+      <div class="ui-g-6">
+        <button type="button" pButton label="No" class="ui-button-secondary"></button>
+      </div>
+    </div>
+  </ng-template>
+</p-toast>
+
+<p-table #dt [columns]="cols" [value]="projects" [lazy]="true" (onLazyLoad)="loadProjects($event)"
+  [tableStyle]="{'table-layout':'auto'}" [totalRecords]="totalDeployments" [loading]="loading"
+  [rowsPerPageOptions]="[10,20,30]" [paginator]="true" [rows]="10" dataKey="id" editMode="row">
+
+  <ng-template pTemplate="caption">
+    <div class="p-d-flex p-ai-center p-jc-between">
+      Projects
+      <button type="button" pButton icon="pi pi-check" (click)="showNewProjectDialog()" label="New project">
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="header" let-columns>
+    <tr>
+      <th *ngFor="let col of columns" [pSortableColumn]="col.isSortable && col.field">
+        {{col.header}}
+        <p-sortIcon [field]="col.field" ariaLabel="Activate to sort" *ngIf="col.isSortable"
+          ariaLabelDesc="Activate to sort in descending order" ariaLabelAsc="Activate to sort in ascending order">
+        </p-sortIcon>
+      </th>
+      <th class="edit-column"></th>
+    </tr>
+    <tr>
+      <th *ngFor="let col of columns" [ngSwitch]="col.field">
+      </th>
+      <th></th>
+    </tr>
+  </ng-template>
+
+
+  <ng-template pTemplate="body" let-rowData let-ri="rowIndex" let-editing="editing">
+    <tr [pEditableRow]="rowData">
+      <td *ngFor="let col of cols;">
+        <div *ngIf="col.field !== 'jiraStatus.name'">
+          <div [innerHTML]="getCellValue(rowData, col)">
+          </div>
+        </div>
+        <p-cellEditor *ngIf="col.field === 'jiraStatus.name'">
+          <ng-template pTemplate="input">
+            <p-dropdown [options]="rowData.presentationTransitionList" [style]="{'width':'100%'}"
+              [(ngModel)]="rowData.jiraStatus.id">
+
+            </p-dropdown>
+          </ng-template>
+          <ng-template pTemplate="output">
+            {{getCellValue(rowData, col)}}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td style="text-align:center">
+        <div *ngIf="rowData.$meta.$isEditable" style="display: inline-block">
+          <button *ngIf="!editing" type="button" pInitEditableRow class="pi pi-pencil"
+            (click)="editing = true && onRowEditInit(rowData)"></button>
+          <button *ngIf="editing" type="button" pSaveEditableRow class="pi pi-check" style="margin-right: .5em"
+            (click)="onRowEditSave(rowData)"></button>
+          <button *ngIf="editing" type="button" pCancelEditableRow class="pi pi-times"
+            (click)="editing = false && onRowEditCancel(rowData, ri)"></button>
+        </div>
+        <button *ngIf="rowData.$meta.$isInstallable && !editing" type="button" class="pi pi-cloud-upload"
+          (click)="showInstallDeploymentDialog(rowData)"></button>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-dialog header="New project" [(visible)]="displayDialog" [responsive]="true" showEffect="fade" [modal]="true"
+  [style]="{width: '60%'}">
+  <div class="ui-g ui-fluid">
+    <div class="ui-g-12">
+      <div class="ui-g-4">
+        <input type="text" pInputText [(ngModel)]="projectName" placeholder="Name" />
+      </div>
+    </div>
+
+
+    <div class="ui-g-12">
+      <h3>Stages</h3>
+    </div>
+    <div *ngFor="let stage of projectStages; let idx = index">
+      <div class="ui-g-12">
+        <div class="ui-g-2">
+          <input type="text" pInputText ngClass="{'p-invalid': getPropError(stage, 'name')}" [(ngModel)]="stage.name"
+            placeholder="Name" />
+          <small class="p-invalid" *ngIf="getPropError(stage, 'name')">{{getPropError(stage, 'name')}}</small>
+        </div>
+
+        <div class="ui-g-2">
+          <p-dropdown [options]="[{label: 'qa', value: 'qa'}, {label: 'production', value: 'production'}]"
+            [style]="{'width':'100%'}" [(ngModel)]="stage.band">
+          </p-dropdown>
+        </div>
+
+        <div class="ui-g-2">
+          <p-dropdown [options]="[{label: 'on-premise', value: 'on-premise'}, {label: 'aws', value: 'aws'}]"
+            [style]="{'width':'100%'}" [(ngModel)]="stage.type">
+          </p-dropdown>
+        </div>
+
+        <div class="ui-g-2">
+          <p-dropdown
+            [options]="[{label: '', value: ''}, {label: 'lambda', value: 'lambda'}, {label: 's3', value: 's3'}]"
+            [style]="{'width':'100%'}" [(ngModel)]="stage.resourceType">
+          </p-dropdown>
+        </div>
+
+
+        <div class="ui-g-2">
+          <input type="text" ngClass="{'p-invalid': getPropError(stage, 'resourceName')}" pInputText
+            [(ngModel)]="stage.resourceName" placeholder="Resource name" />
+          <small class="p-invalid"
+            *ngIf="getPropError(stage, 'resourceName')">{{getPropError(stage, 'resourceName')}}</small>
+        </div>
+
+        <div class="ui-g-1 ui-g-05">
+          <button *ngIf="idx === projectStages.length - 1" type="button" pButton icon="pi pi-plus"
+            (click)="addNewStage()" [disabled]="!canAddStage()">
+          </button>
+        </div>
+
+        <div class="ui-g-1 ui-g-05">
+          <button *ngIf="projectStages.length > 1" type="button" pButton icon="pi pi-times" (click)="removeStage(stage)"
+            [disabled]="projectStages.length === 1">
+          </button>
+        </div>
+      </div>
+
+      <div class="ui-g-6" style="width: auto;" *ngIf="stage.type === 'aws'">
+        <p-chips *ngIf="stage.type === 'aws'" [(ngModel)]="stage.regions" placeholder="Regions"></p-chips>
+      </div>
+    </div>
+
+  </div>
+  <p-footer>
+    <div class="ui-dialog-buttonpane ui-helper-clearfix">
+      <button type="button" pButton icon="pi pi-check" (click)="createProject()" label="Create"
+        [disabled]="!canCreateProject()">
+      </button>
+    </div>
+  </p-footer>
+</p-dialog>
+
+<app-loading-mask></app-loading-mask>

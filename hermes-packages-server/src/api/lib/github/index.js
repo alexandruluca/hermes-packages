@@ -221,7 +221,7 @@ class GithubApi {
 			repo,
 			issue_number: issueNumber
 		});
-		if(res.data.pull_request) {
+		if (res.data.pull_request) {
 			throw new Error('No issue found.');
 		}
 		return res.data;
@@ -241,7 +241,7 @@ class GithubApi {
 		try {
 			let a = await this.getIssue({repo, issueNumber});
 			return true;
-		} catch(err) {
+		} catch (err) {
 			return false;
 		}
 	}
@@ -250,7 +250,7 @@ class GithubApi {
 		let releases = await this.getReleases(repo);
 		let tagRelease = releases.find(r => r.tag_name === tagName);
 
-		if(tagRelease) {
+		if (tagRelease) {
 			await this.deleteRelease({repo, releaseId: tagRelease.id});
 		}
 
@@ -260,7 +260,7 @@ class GithubApi {
 			tag_name: tagName
 		});
 
-		if(!file) {
+		if (!file) {
 			return file;
 		}
 
@@ -377,8 +377,16 @@ class BranchApi {
 
 		let fileContent = Buffer.from(content.data.content, 'base64').toString('utf8');
 
+		if (path.endsWith('.json')) {
+			try {
+				fileContent = JSON.parse(fileContent);
+			} catch (err) {
+				// no action
+			}
+		}
+
 		return {
-			content: path.endsWith('.json') ? JSON.parse(fileContent) : fileContent,
+			content: fileContent,
 			sha: content.data.sha
 		};
 	}

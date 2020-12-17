@@ -14,6 +14,7 @@ import {EditableRow} from 'primeng/table';
 import {DialogModule} from 'primeng/dialog';
 import {RadioButtonModule} from 'primeng/radiobutton';
 import {TranslateModule} from '@ngx-translate/core';
+import {ChipsModule} from 'primeng/chips'
 
 
 @NgModule({
@@ -38,7 +39,8 @@ import {TranslateModule} from '@ngx-translate/core';
     DialogModule,
     RadioButtonModule,
     HttpClientModule,
-    TranslateModule
+    TranslateModule,
+    ChipsModule
   ]
 })
 export class PackageCommonModule { }

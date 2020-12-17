@@ -6,6 +6,10 @@ exports.validateBand = validateBand;
 exports.normalizeVersion = normalizeVersion;
 exports.denormalizeVersion = denormalizeVersion;
 exports.validateRequiredParam = validateRequiredParam;
+exports.getStageIdentifier = getStageIdentifier;
+exports.stageIdentifierToStage = stageIdentifierToStage;
+exports.getGitTagNameByDeployment = getGitTagNameByDeployment;
+
 /**
  *
  * @param {String} field
@@ -57,4 +61,41 @@ function validateRequiredParam(param, paramName) {
 	if ([null, undefined, ''].includes(param)) {
 		throw new Error(`missing value for param: ${paramName}`);
 	}
+}
+
+/**
+ * @param {Stage} stage
+ */
+function getStageIdentifier(stage) {
+	return `${stage.name}-${stage.band}`;
+}
+
+/**
+ * @param {String} stageTag
+ * @returns Stage
+ */
+function stageIdentifierToStage(stageTag) {
+	let tags = stageTag.split('-');
+	let band = tags.pop();
+
+	return {
+		name: tags.join('-'),
+		band
+	};
+}
+
+/**
+ * @param {Deployment} deployment
+ */
+function getGitTagNameByDeployment(deployment) {
+	let band = deployment.band === 'production' ? 'release' : deployment.band;
+
+	let gitTag = normalizeVersion(deployment.version, band);
+
+	if (deployment.pullRequestMeta) {
+		let prMeta = deployment.pullRequestMeta
+		gitTag += `-prid-${prMeta.pullId}-${prMeta.issueNumber}`;
+	}
+
+	return gitTag
 }
