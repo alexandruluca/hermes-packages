@@ -1,0 +1,8 @@
+node_modules
+.vscode
+hermes-packages-server/config.json
+config_old.json
+config_prod.json
+config.json
+database/*
+config/*

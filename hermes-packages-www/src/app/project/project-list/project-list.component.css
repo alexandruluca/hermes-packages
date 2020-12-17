@@ -1,0 +1,22 @@
+.p-d-flex {
+  display: flex;
+}
+.p-jc-between {
+  justify-content: space-between;
+}
+
+.form__input-container {
+  display: inline;
+}
+
+input.p-invalid {
+  border: 1px solid red;
+}
+
+.p-invalid {
+  color: red;
+}
+
+.ui-g-05 {
+  width: 4%;
+}

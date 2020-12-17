@@ -1,0 +1,7 @@
+<div>
+  <div *ngFor="let event of deploymentEvents">
+    {{'deploymentStatusUpdate.' + event.eventName | translate:event.data}}
+    <i class="pi"
+      [ngClass]="{'pi-spin pi-spinner': event.action === 'start', 'pi-check': event.action === 'end', 'pi-times': event.action === 'failure'}"></i>
+  </div>
+</div>

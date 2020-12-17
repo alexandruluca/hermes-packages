@@ -1,0 +1,24 @@
+{
+  "deploymentStatusUpdate": {
+    "jira-status-update": "Updating jira status for {{issueNumber}} to {{jiraStatus}}",
+    "validate-branch-mergeability": "Validating branch mergeability",
+    "merge-pull-request": "Merging {{sourceBranch}} into {{targetBranch}}",
+    "pull-request-merge-base-branch": "Branch {{baseBranch}} is out of date. Merging {{baseBranch}} into {{targetBranch}}",
+    "merge-to-release-branch": "Merging branch develop to release",
+    "delete-branch": "Deleting branch {{sourceBranch}}",
+    "version-not-changed": "Version not updated, skipping version bump",
+    "config-xml-version-bump": "Config XML was updated. iosCfBundleId was bumped to {{iosCfBundleId}}, androidVersionCode was bumped to {{androidVersionCode}}",
+    "version-bump": "Version was bumped to {{version}}",
+    "missing-review": "Pull request has no approving code reviews",
+    "validate-jenkins-release-job": "Validating if jenkins release build job exists",
+    "trigger-jenkins-release-job": "Starting jenkins release job",
+    "github-release-package-stream": "Uploading github package to s3",
+    "aws-lambda-update": "Updating lambda {{resourceName}} to {{gitTag}}",
+    "aws-lambda-version-publish": "Lambda was published to version {{version}}",
+    "aws-lambda-updating-code": "Updating lambda code",
+    "aws-lambda-create-alias": "Creating alias \"{{alias}}\" for lambda",
+    "aws-lambda-skip-alias-create": "Skip alias creation, version is the same",
+    "deployment-update-finished": "Deployment was successfully installed",
+    "notify-package-updater-new-version": "Notifying package updater to install package"
+  }
+}

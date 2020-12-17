@@ -1,0 +1,34 @@
+{
+	"name": "hermes-packages",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"directories": {
+		"test": "test"
+	},
+	"scripts": {
+		"start": "npm run start-server && npm run start-www",
+		"start-server": "cd hermes-packages-server && npm run start && cd -",
+		"start-www": "cd hermes-packages-www && npm run start && cd -",
+		"setup": "npm run install-server && npm run install-www",
+		"install-server": "cd hermes-packages-server && npm i && cd -",
+		"install-www": "cd hermes-packages-www && npm i && cd -",
+		"test": "cd hermes-packages-server && npm test && cd -",
+		"build": "npm run build-www",
+		"build-www": "cd hermes-packages-www && npm install && npm run build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/hermesMobile/hermes-packages.git"
+	},
+	"author": "c",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/hermesMobile/hermes-packages/issues"
+	},
+	"homepage": "https://github.com/hermesMobile/hermes-packages#readme",
+	"dependencies": {
+		"request": "^2.88.0",
+		"request-promise": "^4.2.4"
+	}
+}

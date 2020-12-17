@@ -1,0 +1,1465 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"version": "0.1.0",
+		"title": "Packages"
+	},
+	"basePath": "/api",
+	"securityDefinitions": {
+		"basicAuth": {
+			"type": "basic"
+		},
+		"user-session": {
+			"type": "apiKey",
+			"in": "header",
+			"name": "user-session"
+		}
+	},
+	"schemes": [
+		"https",
+		"http"
+	],
+	"security": [
+		{
+			"basicAuth": []
+		}
+	],
+	"paths": {
+		"/projects": {
+			"post": {
+				"tags": [
+					"projects"
+				],
+				"description": "Create project",
+				"x-swagger-router-controller": "ProjectController",
+				"operationId": "createProject",
+				"security": [],
+				"parameters": [
+					{
+						"name": "project",
+						"in": "body",
+						"description": "Project to create",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"required": [
+								"name"
+							],
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"stages": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"required": [
+											"name",
+											"type",
+											"band"
+										],
+										"properties": {
+											"name": {
+												"type": "string"
+											},
+											"type": {
+												"type": "string",
+												"enum": [
+													"on-premise",
+													"aws"
+												]
+											},
+											"band": {
+												"type": "string",
+												"enum": [
+													"develop",
+													"qa",
+													"release",
+													"production"
+												]
+											},
+											"resourceType": {
+												"type": "string",
+												"enum": [
+													"lambda",
+													"s3"
+												]
+											},
+											"resourceName": {
+												"type": "string"
+											},
+											"regions": {
+												"type": "array",
+												"items": {
+													"type": "string"
+												}
+											},
+											"runtime": {
+												"type": "string",
+												"enum": [
+													"nodejs"
+												]
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"projects"
+				],
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"description": "Get projects",
+				"x-swagger-router-controller": "ProjectController",
+				"operationId": "getProjects",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments": {
+			"post": {
+				"tags": [
+					"deployments"
+				],
+				"consumes": [
+					"multipart/form-data"
+				],
+				"description": "Create deployment",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "createDeployment",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "formData",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "deploymentFile",
+						"in": "formData",
+						"description": "Deployment file",
+						"required": true,
+						"type": "file"
+					},
+					{
+						"name": "band",
+						"in": "formData",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "version",
+						"in": "formData",
+						"description": "Deployment version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "serverTag",
+						"in": "formData",
+						"description": "Deployment server tag",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "pullRequestMeta",
+						"in": "formData",
+						"description": "Deployment pull request meta",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "isHotfix",
+						"in": "formData",
+						"description": "Deployment is hotfix",
+						"required": false,
+						"type": "string",
+						"enum": [
+							"true",
+							"false"
+						]
+					},
+					{
+						"name": "iosCfBundleId",
+						"in": "formData",
+						"description": "Deployment iosCfBundleId",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "androidVersionCode",
+						"in": "formData",
+						"description": "Deployment androidVersionCode",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "deployAsAwsLambdaFunction",
+						"in": "formData",
+						"description": "Deployment deployAsAwsLambdaFunction",
+						"required": false,
+						"type": "string",
+						"enum": [
+							"true",
+							"false"
+						]
+					},
+					{
+						"name": "overrideExistingDeployment",
+						"in": "query",
+						"description": "if true, will override the current found deployment",
+						"type": "boolean",
+						"required": false
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"deployments"
+				],
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"description": "Get deployments",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeployments",
+				"parameters": [
+					{
+						"name": "options",
+						"in": "body",
+						"description": "Options",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"query": {
+									"type": "object"
+								},
+								"sort": {
+									"type": "object",
+									"properties": {
+										"property": {
+											"type": "string"
+										},
+										"direction": {
+											"type": "string",
+											"enum": [
+												"asc",
+												"desc"
+											]
+										}
+									}
+								},
+								"distinct": {
+									"type": "string"
+								},
+								"pageNumber": {
+									"type": "number",
+									"default": 1
+								},
+								"pageSize": {
+									"type": "number",
+									"default": 20
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/can-create": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Determines if deployment can be created",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "canCreateDeployment",
+				"parameters": [
+					{
+						"name": "name",
+						"in": "query",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "query",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"description": "Deployment version",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/release/tag": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get tag name for deployment",
+				"parameters": [
+					{
+						"name": "deployment",
+						"required": true,
+						"description": "Deployment",
+						"in": "body",
+						"schema": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"band": {
+									"type": "string",
+									"enum": [
+										"develop",
+										"release",
+										"qa"
+									]
+								},
+								"version": {
+									"type": "string"
+								},
+								"isHotfix": {
+									"type": "boolean"
+								},
+								"serverTag": {
+									"type": "string"
+								},
+								"iosCfBundleId": {
+									"type": "string"
+								},
+								"androidVersionCode": {
+									"type": "string"
+								},
+								"deployAsAwsLambdaFunction": {
+									"type": "boolean"
+								},
+								"pullRequestMeta": {
+									"$ref": "#/definitions/PullRequestMeta"
+								}
+							},
+							"required": [
+								"name",
+								"band",
+								"version"
+							]
+						}
+					}
+				],
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeploymentTagName",
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/context/band/{band}": {
+			"put": {
+				"tags": [
+					"deployments"
+				],
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"description": "Get deployment context",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getPullRequestDeploymentContext",
+				"parameters": [
+					{
+						"name": "band",
+						"in": "path",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/{deploymentId}": {
+			"put": {
+				"tags": [
+					"deployments"
+				],
+				"security": [
+					{
+						"basicAuth": []
+					},
+					{
+						"user-session": []
+					}
+				],
+				"description": "Update the status of a pull request deployment",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "updateDeployment",
+				"parameters": [
+					{
+						"name": "deploymentId",
+						"in": "path",
+						"description": "Deployment id",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "deployment",
+						"required": true,
+						"in": "body",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"pullId": {
+									"type": "string"
+								},
+								"jiraStatusId": {
+									"type": "string"
+								},
+								"pullRequestStatus": {
+									"type": "string",
+									"enum": [
+										"pending-build",
+										"failing-build",
+										"build-complete"
+									]
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"deployments"
+				],
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"description": "Delete deployments by name",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "deleteDeployments",
+				"parameters": [
+					{
+						"name": "deploymentId",
+						"in": "path",
+						"description": "Deployment name or deployment id",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/{deploymentName}/pullrequest/{pullId}/install": {
+			"put": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Install pull request deployment on a specific server",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "signalDeploymentInstall",
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "pullId",
+						"in": "path",
+						"description": "Pull request id",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "payload",
+						"in": "body",
+						"description": "Payload",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"stageIdentifier": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"stageIdentifier"
+							]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/{deploymentName}/server/{serverTag}/reset": {
+			"put": {
+				"tags": [
+					"deployments"
+				],
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"description": "Reset a pull request deployment to release",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "resetDeploymentToRelease",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "serverTag",
+						"in": "path",
+						"description": "Server tag",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/server/deployment-meta": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"security": [
+					{
+						"user-session": []
+					}
+				],
+				"description": "Get connected servers deployment meta",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getServerDeploymentMeta",
+				"parameters": [
+					{
+						"name": "band",
+						"in": "query",
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						],
+						"required": false
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/{deploymentName}/{band}/{version}/upload": {
+			"post": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Gets a deployment upload url for .zip file",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeploymentUploadUrl",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "path",
+						"description": "Band name",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "version",
+						"in": "path",
+						"description": "Deploy version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "isHotfix",
+						"in": "query",
+						"description": "hotfix indicator",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "serverTag",
+						"in": "query",
+						"description": "server tag where the hotfix is deployed",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "pullRequestId",
+						"in": "query",
+						"description": "pull request id",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "issueNumber",
+						"in": "query",
+						"description": "Jira task key",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/{deploymentName}/download": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get a deployment download url",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "downloadDeployment",
+				"produces": [
+					"application/pdf"
+				],
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "deploymentId",
+						"in": "query",
+						"description": "Deployment id. Can be given to reduce the number of found deployments, one in this case",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "version",
+						"in": "query",
+						"description": "Deploy version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "query",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"production",
+							"qa"
+						]
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/{deploymentName}/{version}/{serverTag}/promote": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"security": [
+					{
+						"user-session": []
+					},
+					{
+						"basicAuth": []
+					}
+				],
+				"description": "Promote a deployment to production band",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "promoteDeployment",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "version",
+						"in": "path",
+						"description": "Deploy version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "serverTag",
+						"in": "path",
+						"description": "Server tag",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployments/{deploymentName}/{band}/increment": {
+			"put": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get next available version for a deployment band",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getVersionIncrement",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "path",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "payload",
+						"in": "body",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"versionSeed": {
+									"type": "string"
+								},
+								"iosCfBundleIdSeed": {
+									"type": "string"
+								},
+								"androidVersionCodeSeed": {
+									"type": "string"
+								},
+								"pullRequestMeta": {
+									"$ref": "#/definitions/PullRequestMeta"
+								}
+							},
+							"required": [
+								"versionSeed"
+							]
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployment/{deploymentName}/meta/{band}/{version}": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get a deployment document by name version and band",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeployment",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "version",
+						"in": "path",
+						"description": "Deploy version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "path",
+						"description": "band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "iosCfBundleId",
+						"in": "query",
+						"description": "ios cf bundle version",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "androidVersionCode",
+						"in": "query",
+						"description": "android version",
+						"required": false,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Invalidates a registered package",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "invalidateDeployment",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "path",
+						"description": "band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"qa"
+						]
+					},
+					{
+						"name": "version",
+						"in": "path",
+						"description": "Deploy version",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployment/{deploymentName}/meta/{band}/{version}/name": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get deployment name by deployment",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeploymentName",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "version",
+						"in": "path",
+						"description": "Deploy version",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "path",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"production",
+							"qa"
+						]
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployment/{deploymentName}/jira/{issueNumber}": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get a deployment by jira task key",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeploymentByIssueNumber",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "issueNumber",
+						"in": "path",
+						"description": "Project issue number",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/deployment/{deploymentName}/{band}": {
+			"get": {
+				"tags": [
+					"deployments"
+				],
+				"description": "Get deployment versions",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getDeploymentVersions",
+				"parameters": [
+					{
+						"name": "deploymentName",
+						"in": "path",
+						"description": "Deployment name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "band",
+						"in": "path",
+						"description": "Deployment band",
+						"required": true,
+						"type": "string",
+						"enum": [
+							"develop",
+							"release",
+							"production"
+						]
+					},
+					{
+						"name": "serverTag",
+						"in": "query",
+						"description": "Server tag indicator",
+						"required": false,
+						"type": "string"
+					},
+					{
+						"name": "usePullRequestDeployments",
+						"in": "query",
+						"description": "indicate whether or not to use pull request based deployments",
+						"required": false,
+						"type": "boolean"
+					},
+					{
+						"name": "latest",
+						"in": "query",
+						"description": "Indicate whether to fetch latest version only",
+						"required": false,
+						"type": "boolean"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful response",
+						"schema": {
+							"$ref": "#/definitions/Result"
+						}
+					}
+				}
+			}
+		},
+		"/projects/{projectName}/issues/{issueNumber}": {
+			"get": {
+				"tags": [
+					"jira"
+				],
+				"description": "Get Project issue",
+				"x-swagger-router-controller": "Jira",
+				"operationId": "getProjectIssue",
+				"parameters": [
+					{
+						"name": "projectName",
+						"in": "path",
+						"description": "Project name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "issueNumber",
+						"in": "path",
+						"description": "Issue number",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "true/false response"
+					}
+				}
+			}
+		},
+		"/hooks/github": {
+			"post": {
+				"tags": [
+					"hooks"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"name": "hookPayload",
+						"in": "body",
+						"description": "hook payload",
+						"required": true,
+						"schema": {
+							"type": "object"
+						}
+					}
+				],
+				"description": "Github hook",
+				"x-swagger-router-controller": "HookController",
+				"operationId": "handleGithubHook",
+				"responses": {
+					"200": {
+						"description": "Response"
+					}
+				}
+			}
+		},
+		"/ping": {
+			"get": {
+				"tags": [
+					"ping"
+				],
+				"description": "Ping",
+				"x-swagger-router-controller": "DeploymentController",
+				"operationId": "getPing",
+				"responses": {
+					"200": {
+						"description": "ping response"
+					}
+				}
+			}
+		},
+		"/user/session": {
+			"get": {
+				"tags": [
+					"user"
+				],
+				"security": [],
+				"description": "Get user session",
+				"x-swagger-router-controller": "User",
+				"operationId": "getSession",
+				"responses": {
+					"200": {
+						"description": "user session response"
+					}
+				}
+			}
+		},
+		"/communication/emit": {
+			"post": {
+				"tags": [
+					"communication"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"name": "message",
+						"in": "body",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"title": {
+									"type": "string"
+								},
+								"body": {
+									"type": "string"
+								},
+								"subTitle": {
+									"type": "string"
+								},
+								"type": {
+									"type": "string",
+									"enum": [
+										"information",
+										"success",
+										"warning",
+										"error"
+									]
+								}
+							},
+							"required": [
+								"title",
+								"body",
+								"type"
+							]
+						}
+					}
+				],
+				"description": "Emit a new message",
+				"x-swagger-router-controller": "Communication",
+				"operationId": "emitMessage",
+				"responses": {
+					"200": {
+						"description": "Emit message response"
+					}
+				}
+			}
+		},
+		"/projects/{projectName}": {
+			"head": {
+				"tags": [
+					"project"
+				],
+				"description": "Determine if git project exists",
+				"x-swagger-router-controller": "Project",
+				"operationId": "isExistingProject",
+				"parameters": [
+					{
+						"name": "projectName",
+						"in": "path",
+						"description": "Project name",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "true/false response"
+					}
+				}
+			}
+		},
+		"/projects/{projectName}/{serverTag}/configuration": {
+			"get": {
+				"tags": [
+					"project"
+				],
+				"security": [],
+				"description": "Get project configuratuon",
+				"x-swagger-router-controller": "Project",
+				"operationId": "getProjectConfiguration",
+				"parameters": [
+					{
+						"name": "projectName",
+						"in": "path",
+						"description": "Project name",
+						"required": true,
+						"type": "string"
+					},
+					{
+						"name": "serverTag",
+						"in": "path",
+						"description": "Server tag",
+						"required": true,
+						"type": "string"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Project configuration"
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"Result": {
+			"type": "object",
+			"properties": {
+				"success": {
+					"type": "boolean"
+				},
+				"code": {
+					"type": "number"
+				},
+				"message": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"success",
+				"code",
+				"message"
+			]
+		},
+		"UploadSpecification": {
+			"type": "object",
+			"properties": {
+				"success": {
+					"type": "boolean"
+				},
+				"code": {
+					"type": "number"
+				},
+				"message": {
+					"type": "string"
+				},
+				"uploadUrl": {
+					"type": "string"
+				},
+				"filename": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"success",
+				"uploadUrl",
+				"filename"
+			]
+		},
+		"PullRequestMeta": {
+			"type": "object",
+			"properties": {
+				"actualCommit": {
+					"type": "string"
+				},
+				"actualCommitAuthor": {
+					"type": "string"
+				},
+				"actualCommitAuthorEmail": {
+					"type": "string"
+				},
+				"pullDescription": {
+					"type": "string"
+				},
+				"pullId": {
+					"type": "string"
+				},
+				"pullLink": {
+					"type": "string"
+				},
+				"pullTitle": {
+					"type": "string"
+				},
+				"sourceBranch": {
+					"type": "string"
+				},
+				"targetBranch": {
+					"type": "string"
+				},
+				"issueNumber": {
+					"type": "string"
+				},
+				"sha1": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"actualCommit",
+				"pullDescription",
+				"pullId",
+				"pullLink",
+				"pullTitle",
+				"sourceBranch",
+				"issueNumber",
+				"targetBranch",
+				"sha1"
+			]
+		}
+	}
+}
