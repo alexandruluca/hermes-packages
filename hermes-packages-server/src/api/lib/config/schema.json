@@ -1,0 +1,155 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"type": "object",
+	"properties": {
+		"port": {
+			"type": "integer"
+		},
+		"user": {
+			"type": "object",
+			"properties": {
+				"username": {
+					"type": "string"
+				},
+				"password": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"username",
+				"password"
+			]
+		},
+		"awsDeployments": {
+			"$ref": "#/definitions/aws"
+		},
+		"jiraLinkTemplate": {
+			"type": "string"
+		},
+		"webClientConfig": {
+			"type": "object",
+			"properties": {
+				"githubApiClientId": {
+					"type": "string"
+				}
+			},
+			"required": ["githubApiClientId"]
+		},
+		"githubApi": {
+			"type": "object",
+			"properties": {
+				"accessToken": {
+					"type": "string"
+				},
+				"owner": {
+					"type": "string"
+				},
+				"clientId": {
+					"type": "string"
+				},
+				"clientSecret": {
+					"type": "string"
+				},
+				"callback": {
+					"type": "string"
+				}
+			},
+			"required": ["accessToken", "owner", "clientId", "callback"]
+		},
+		"jiraApi": {
+			"type": "object",
+			"properties": {
+				"userEmail": {
+					"type": "string"
+				},
+				"accessToken": {
+					"type": "string"
+				},
+				"apiUrl": {
+					"type": "string"
+				}
+			},
+			"required": ["userEmail", "accessToken"]
+		},
+		"issueProvider": {
+			"type": "string",
+			"enum": ["jira", "github"]
+		},
+		"storageProvider": {
+			"type": "string",
+			"enum": ["s3", "github"]
+		},
+		"jenkins": {
+			"type": "object",
+			"properties": {
+				"username": {
+					"type": "string"
+				},
+				"password": {
+					"type": "string"
+				},
+				"url": {
+					"type": "string"
+				},
+				"secret": {
+					"type": "string"
+				}
+			},
+			"required": ["username", "password", "url"]
+		},
+		"disablePullRequestReview": {
+			"type": "boolean"
+		},
+		"slack": {
+			"type": "object",
+			"required": ["authToken", "channelId"],
+			"properties": {
+				"authToken": {
+					"type": "string"
+				},
+				"channelId": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"required": [
+		"port",
+		"awsDeployments",
+		"webClientConfig",
+		"jiraLinkTemplate",
+		"githubApi",
+		"jiraApi",
+		"issueProvider",
+		"storageProvider",
+		"slack"
+	],
+	"definitions": {
+		"aws": {
+			"type": "object",
+			"properties": {
+				"bucket": {
+					"type": "string"
+				},
+				"accessKeyId": {
+					"type": "string"
+				},
+				"secretAccessKey": {
+					"type": "string"
+				},
+				"defaultRegion": {
+					"type": "string"
+				},
+				"ttl": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"bucket",
+				"accessKeyId",
+				"secretAccessKey",
+				"defaultRegion"
+			]
+		}
+	}
+}
