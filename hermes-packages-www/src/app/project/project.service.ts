@@ -17,6 +17,12 @@ export class ProjectService {
     this.clientInstance = api.clientInstance;
   }
 
+  createProject(project: Project) {
+    return this.clientInstance.apis.projects.createProject({
+      project
+    });
+  }
+
   async getProjects(): Promise<PageResult<Project>> {
     let projects: Project[] = await this.clientInstance.apis.projects.getProjects();
 

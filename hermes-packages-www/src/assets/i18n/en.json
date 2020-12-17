@@ -14,6 +14,10 @@
     "trigger-jenkins-release-job": "Starting jenkins release job",
     "github-release-package-stream": "Uploading github package to s3",
     "aws-lambda-update": "Updating lambda {{resourceName}} to {{gitTag}}",
+    "aws-lambda-version-publish": "Lambda was published to version {{version}}",
+    "aws-lambda-updating-code": "Updating lambda code",
+    "aws-lambda-create-alias": "Creating alias \"{{alias}}\" for lambda",
+    "aws-lambda-skip-alias-create": "Skip alias creation, version is the same",
     "deployment-update-finished": "Deployment was successfully installed",
     "notify-package-updater-new-version": "Notifying package updater to install package"
   }

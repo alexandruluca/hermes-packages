@@ -1,21 +1,20 @@
 import {Component, OnInit} from '@angular/core';
-import {Project, ProjectStage} from '../../common/models/domain/Deployment';
+import {Project, ProjectStage, Stage} from '../../common/models/domain/Deployment';
 import {MessageService} from 'primeng/api';
 import {ProjectService} from '../project.service';
+import {Api} from 'src/app/common/api.service';
+import {DeploymentService} from 'src/app/deployment/deployment.service';
 
 const COLUMNS = [
   {
     field: 'name', header: 'Name', isEditable: false, isSortable: false
   },
   {
-    field: 'type', header: 'Type', isEditable: false, isSortable: false
-  },
-  {
     field: 'stages', header: 'Stages', isEditable: false, isSortable: false,
     renderer: function (data: Project) {
       return data.stages.map(stage => {
         let regions = stage.regions && stage.regions.length ? `[${stage.regions.join('')}]` : '';
-        return `[${stage.stage}] - ${stage.resourceName} ${stage.resourceType} ${regions}`;
+        return `[${stage.type}] [${stage.band}] - ${stage.resourceName} ${stage.resourceType} ${regions}`;
       }).map(val => `<div>${val}</div>`).join('');
     }
   }
@@ -30,7 +29,17 @@ const COLUMNS = [
 export class ProjectListComponent implements OnInit {
   private projectService: ProjectService;
   private messageService: MessageService;
-
+  projectName: string;
+  defaultStage: Stage = {
+    type: 'aws',
+    name: null,
+    band: 'qa',
+    regions: ['eu-west-1'],
+    resourceName: null,
+    resourceType: 'lambda',
+    runtime: 'nodejs'
+  };
+  projectStages: Stage[] = [JSON.parse(JSON.stringify(this.defaultStage))];
   projects: Project[] = [];
   totalDeployments: number;
   loading = true;
@@ -80,7 +89,97 @@ export class ProjectListComponent implements OnInit {
 
   showInstallDeploymentDialog(project: Project) { }
 
-  async signalDeploymentInstall() { }
+  showNewProjectDialog() {
+    this.displayDialog = true;
+  }
+
+  async createProject() {
+    console.log(this.projectStages);
+
+    return this.projectService.createProject({
+      name: this.projectName,
+      stages: this.projectStages
+    });
+  }
+
+  canCreateProject() {
+    if (!this.projectName) {
+      return false;
+    }
+
+    if (!this.canAddStage()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  isValidStage(stage: Stage) {
+    if (!stage.name) {
+      return false;
+    }
+
+    if (stage.type === 'aws') {
+      if (!stage.resourceName || !stage.resourceType) {
+        return false;
+      }
+    }
+
+    return !this.getPropError(stage, 'resourceName');
+  }
+
+  canAddStage() {
+    for (let stage of this.projectStages) {
+      if (!this.isValidStage(stage)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  addNewStage() {
+    this.projectStages.push(JSON.parse(JSON.stringify(this.defaultStage)));
+  }
+
+  removeStage(stage: Stage) {
+    this.projectStages = this.projectStages.filter(s => s.name !== stage.name);
+  }
+
+  getPropError(stage: Stage, prop: 'resourceName' | 'resourceType' | 'name'): string {
+    if (prop === 'name') {
+      if (!stage.name) {
+        return `Missing ${prop}`;
+      }
+      if (!this.isUniqueStageProp(stage, prop)) {
+        return 'Should be unique';
+      }
+      return;
+    }
+
+    if (prop === 'resourceName' && stage.type === 'aws') {
+      if (!stage.resourceName) {
+        return `Missing ${prop}`;
+      }
+      if (!this.isUniqueStageProp(stage, prop)) {
+        return 'Should be unique';
+      }
+      return;
+    }
+
+    if (prop === 'resourceType' && stage.type === 'aws') {
+      if (!stage[prop]) {
+        return `Missing ${prop}`;
+      }
+    }
+
+    return;
+  }
+
+  isUniqueStageProp(stage: Stage, prop) {
+    let count = this.projectStages.filter(s => s[prop] === stage[prop]).length;
+    return count === 1;
+  }
 
   getCellValue(rowData, {field, renderer}) {
     const dataIndexes = field.split('.');

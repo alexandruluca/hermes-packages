@@ -7,9 +7,12 @@ export enum DeploymentBand {
 
 export interface Stage {
   name: string,
+  type: 'on-premise' | 'aws';
+  band: 'qa' | 'production';
   regions: string[],
-  resourceName: string,
-  resourceType: string
+  resourceName?: string,
+  resourceType?: string,
+  runtime?: 'nodejs'
 }
 
 export enum DeploymentStatus {
@@ -43,13 +46,13 @@ export interface Deployment {
 
 export interface Project {
   name: string;
-  type: 'on-premise' | 'aws';
   stages: ProjectStage[];
-  $meta: object;
+  $meta?: object;
 }
 
 export interface ProjectStage {
-  stage: string;
+  band: string;
+  type: 'on-premise' | 'aws';
   resourceType?: string;
   resourceName?: string;
   regions?: string[];
