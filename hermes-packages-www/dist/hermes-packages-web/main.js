@@ -1374,9 +1374,8 @@ var DeploymentListComponent = /** @class */ (function () {
         this.displayDialog = true;
         this.installableDeployment = deployment;
         var servers = this.deploymentContext.connectedServers.filter(function (server) {
-            return server.band === _this.installBand;
+            return server.band === _this.installBand && server.deploymentName === deployment.name;
         });
-        console.log(servers);
         this.deploymentServerTagOptions = servers.reduce(function (tags, server) {
             tags.push({
                 value: server.tag,

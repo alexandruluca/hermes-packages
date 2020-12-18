@@ -207,10 +207,8 @@ export class DeploymentListComponent implements OnInit {
     this.installableDeployment = deployment;
 
     let servers = this.deploymentContext.connectedServers.filter(server => {
-      return server.band === this.installBand;
+      return server.band === this.installBand && server.deploymentName === deployment.name
     });
-
-    console.log(servers);
 
     this.deploymentServerTagOptions = servers.reduce((tags, server) => {
       tags.push({
