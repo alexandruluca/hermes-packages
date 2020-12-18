@@ -3,7 +3,7 @@ const config = require('../../../lib/config');
 const logger = require('../../../lib/logger');
 const awsConfig = config.awsDeployments;
 const stream = require('stream');
-const {getInstance} = require('..');
+const mime = require('mime-types');
 
 const S3_REGION = awsConfig.defaultRegion;
 
@@ -49,11 +49,15 @@ class S3Service {
 	 * @param {String} opt.key
 	 */
 	async uploadStream({bucket, key}) {
+		bucket = bucket || S3_BUCKET;
+
 		const pass = new stream.PassThrough();
+
+		let ContentType = mime.lookup(key);
 
 		return {
 			writeStream: pass,
-			promise: s3Instance.upload({Bucket: bucket || S3_BUCKET, Key: key, Body: pass}).promise()
+			promise: s3Instance.upload({Bucket: bucket, Key: key, Body: pass, ContentType}).promise()
 		};
 	}
 

@@ -25,6 +25,7 @@
     "lodash": "4.17.19",
     "log4js": "4.2.0",
     "lokijs": "^1.5.8",
+    "mime-types": "^2.1.27",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "rimraf": "^3.0.2",

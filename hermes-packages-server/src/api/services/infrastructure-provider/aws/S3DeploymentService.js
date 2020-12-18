@@ -5,6 +5,9 @@ const extract = require('extract-zip');
 const logger = require('../../../lib/logger');
 const {resolve} = require('path');
 const {s3Service} = require('./S3Service');
+const {eventBusService} = require('../../event-bus/EventBusService');
+const {BranchApi} = require('../../../lib/github');
+const {DeploymentBand} = require('../../deployment/const');
 const {readdir} = require('fs').promises;
 const rimraf = require('util').promisify(require('rimraf'));
 
@@ -17,6 +20,17 @@ class S3DeploymentService {
 	 * @param {string} opt.region
 	 */
 	async handleDeploymentUpdate({stage, deploymentReadStream, deployment, region}) {
+		const branchApi = new BranchApi({
+			repo: deployment.name,
+			userEmail: null
+		});
+
+		let ref = deployment.band === DeploymentBand.QA ? deployment.pullRequestMeta.sourceBranch : 'release';
+
+		let {content: manifestFile} = await branchApi.getContents({ref, path: 'hermes.json'});
+
+		let rootDir = manifestFile.rootDir;
+
 		let fileName = uuid.v4();
 		const outFileLocation = path.join(require('os').tmpdir(), fileName);
 		const extractLocation = `${outFileLocation}-out`;
@@ -39,8 +53,11 @@ class S3DeploymentService {
 
 		logger.info(`finished writing deployment package zip to ${outFileLocation}`);
 
-		await extract(outFileLocation, {dir: extractLocation})
-		console.log('Extraction complete', extractLocation);
+		eventBusService.emitDeploymentStatusUpdate('s3-github-package-extract');
+
+		await extract(outFileLocation, {dir: extractLocation});
+
+		eventBusService.emitDeploymentStatusUpdate('s3-github-package-extract', {isCompleted: true});
 
 		let files = await getFiles(extractLocation);
 
@@ -48,12 +65,20 @@ class S3DeploymentService {
 
 		let uploadFiles = files.map(async (file) => {
 			let fullPath = path.join(extractLocation, file);
+			let s3Key = file;
 
-			logger.info(`piping ${file} to s3 bucket`);
+			if (rootDir) {
+				if (!file.startsWith(`${rootDir}/`)) {
+					return;
+				}
+				s3Key = file.replace(new RegExp(`^${rootDir}/`), '')
+			}
+
+			logger.info(`piping ${file} to s3 bucket as ${s3Key}`);
 
 			let readStream = fs.createReadStream(fullPath);
 
-			let {writeStream, promise} = await s3Service.uploadStream({bucket: destinationBucket, key: file});
+			let {writeStream, promise} = await s3Service.uploadStream({bucket: destinationBucket, key: s3Key});
 
 			readStream.pipe(writeStream);
 			return promise;
