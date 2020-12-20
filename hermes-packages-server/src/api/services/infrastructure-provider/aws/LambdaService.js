@@ -165,6 +165,8 @@ class LambdaService {
 
 		let {Environment} = await lambdaInstance.getFunctionConfiguration({FunctionName: functionName}).promise();
 
+		Environment = Environment || {};
+
 		let updateNeeded = false;
 
 		for (let prop in configuration) {
