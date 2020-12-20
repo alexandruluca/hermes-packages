@@ -6,8 +6,8 @@ const {getGitTagNameByDeployment} = require('../../../util');
 const {storageProvider} = require('../../../providers/storageProvider');
 const {lambdaService} = require('./LambdaService');
 const {eventBusService} = require('../../event-bus/EventBusService');
-const {DeploymentBand} = require('../../deployment/const');
 const {s3DeploymentService} = require('./S3DeploymentService');
+const {lambdaDeploymentService} = require('./LambdaDeploymentService');
 
 const LAMBDA_RUNTINME_LIST = ['nodejs'];
 const SUPPORTED_RESOURCE_LIST = ['lambda', 's3'];
@@ -188,40 +188,10 @@ class AwsProviderService extends InfrastructureProviderService {
 			region
 		};
 		if (stage.resourceType === 'lambda') {
-			return this._handleLambdaResourceUpdate(opt);
+			return lambdaDeploymentService.handleDeploymentUpdate(opt);
 		} else if (stage.resourceType === 's3') {
 			return s3DeploymentService.handleDeploymentUpdate(opt);
 		}
-	}
-
-	/**
-	 * @param {Object} opt
-	 * @param {Stage} opt.stage
-	 * @param {Deployment} opt.deployment
-	 * @param {Stream} opt.deploymentReadStream
-	 * @param {string} opt.region
-	 */
-	async _handleLambdaResourceUpdate({stage, deployment, deploymentReadStream, region}) {
-		let s3DeploymentFileName = `${deployment.name}/${stage.name}.zip`;
-		let uploadingS3PackageMessage = `github-release-package-stream`;
-		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage);
-
-		let {writeStream, promise: uploadFinishedPromise} = await s3Service.uploadStream({key: s3DeploymentFileName});
-
-		deploymentReadStream.pipe(writeStream);
-
-		await uploadFinishedPromise;
-
-		eventBusService.emitDeploymentStatusUpdate(uploadingS3PackageMessage, {isCompleted: true});
-
-		await lambdaService.deployLambdaFunction({
-			functionName: stage.resourceName,
-			region,
-			s3FileName: s3DeploymentFileName,
-			band: stage.band === DeploymentBand.PRODUCTION ? DeploymentBand.RELEASE : stage.band,
-			deploymentVersion: deployment.version,
-			stage: 'green' // handle green/blue deployment in the future
-		});
 	}
 
 	/**

@@ -7,6 +7,14 @@ const awsConfig = config.awsDeployments;
 
 const lambdaInstances = {};
 
+const MessageKey = {
+	LambdaCodeUpdate: 'aws-lambda-updating-code',
+	LambdaVersionPublish: 'aws-lambda-version-publish',
+	LambdaSkipAliasCreate: 'aws-lambda-skip-alias-create',
+	LambdaCreateAlias: 'aws-lambda-create-alias',
+	LambdaUpdateConfig: 'aws-lambda-update-config'
+};
+
 /**
  * @param {String} region
  * @return AWS.Lambda
@@ -83,22 +91,23 @@ class LambdaService {
 	 * @param {Object} opt
 	 * @param {String} opt.functionName
 	 * @param {String} opt.region
+	 * @param {Object} opt.configuration - environment variables
 	 * @param {String} opt.s3FileName
 	 * @param {'green' | 'blue'} opt.stage
 	 * @param {String} opt.deploymentVersion
 	 * @param {String} opt.band
 	 */
-	async deployLambdaFunction({functionName, region, s3FileName, stage, deploymentVersion, band}) {
+	async deployLambdaFunction({functionName, region, s3FileName, stage, configuration, deploymentVersion, band}) {
 		let aliasName = stage;
-		let message = 'aws-lambda-updating-code';
-		eventBusService.emitDeploymentStatusUpdate(message);
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaCodeUpdate);
 		await this.updateLambdaCode(functionName, region, s3FileName);
-		eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaCodeUpdate, {isCompleted: true});
+
+		await this._updateFunctionConfiguration({functionName, configuration, region});
 
 		let version = await this.publishLambdaVersion(functionName, region);
 
-		message = 'aws-lambda-version-publish';
-		eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true, data: {version}});
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaVersionPublish, {isCompleted: true, data: {version}});
 
 		logger.info(`publishing version for lambda function: '${functionName}:${version}'`);
 
@@ -113,8 +122,7 @@ class LambdaService {
 		if (lambdaEntry) {
 			let oldVersion = lambdaEntry.version;
 			if (oldVersion === version) {
-				message = 'aws-lambda-skip-alias-create';
-				eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
+				eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaSkipAliasCreate, {isCompleted: true});
 
 				logger.info(`skip alias create, alias '${aliasName}' for function '${functionName}@${oldVersion}' already exists`);
 				return;
@@ -129,18 +137,57 @@ class LambdaService {
 
 		logger.info(`creating alias: '${aliasName}' for function: '${functionName}:${version}'`);
 
-		message = 'aws-lambda-create-alias';
-		eventBusService.emitDeploymentStatusUpdate(message, {data: {alias: aliasName}})
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaCreateAlias, {data: {alias: aliasName}})
 
 		await this.createLambdaAlias({functionName, version, region, aliasName});
 
-		eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true})
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaCreateAlias, {isCompleted: true})
 
 		if (!lambdaEntry) {
 			doc.version = version;
 			doc.deploymentVersion = deploymentVersion;
 			lambdaCollection.insert(doc)
 		}
+	}
+
+	/**
+	 * @param {Object} opt
+	 * @param {String} opt.functionName
+	 * @param {Object} opt.configuration
+	 * @param {String} opt.region
+	 */
+	async _updateFunctionConfiguration({functionName, configuration, region}) {
+		if (!configuration) {
+			return;
+		}
+
+		let lambdaInstance = getLambdaInstance(region);
+
+		let {Environment} = await lambdaInstance.getFunctionConfiguration({FunctionName: functionName}).promise();
+
+		let updateNeeded = false;
+
+		for (let prop in configuration) {
+			configuration[prop] += '';
+			let stringVal = configuration[prop];
+
+			if (Environment[prop] !== stringVal) {
+				updateNeeded = true;
+			}
+		}
+
+		if (!updateNeeded) {
+			return;
+		}
+
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaUpdateConfig);
+		await lambdaInstance.updateFunctionConfiguration({
+			FunctionName: functionName,
+			Environment: {
+				Variables: configuration
+			}
+		}).promise();
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaUpdateConfig, {isCompleted: true});
 	}
 
 	/**

@@ -258,8 +258,6 @@ class DeploymentService {
 
 		let deploymentName = this.getDeploymentName({...deployment, isHotfix, serverTag});
 
-		console.log('override existing', overrideExistingDeployment);
-
 		if (!isPullRequest && !overrideExistingDeployment) {
 			this.validateDeployment(deployment);
 		}
