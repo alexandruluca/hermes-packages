@@ -770,6 +770,8 @@ class DeploymentService {
 			versionSequence[prop] = getSequence(versionSequence[prop], deploymentObject[prop], SEQUENCES[prop]);
 		}
 
+		console.log(JSON.stringify(versionSequence, null, 4));
+
 		return versionSequence;
 	}
 
