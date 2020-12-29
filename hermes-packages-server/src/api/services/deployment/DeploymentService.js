@@ -741,7 +741,12 @@ class DeploymentService {
 		let isReleaseBand = band === DeploymentBand.RELEASE;
 		seedValues = Array.isArray(seedValues) ? seedValues : [seedValues];
 		let seedBand = isReleaseBand ? DeploymentBand.DEVELOP : band;
+
+		console.log(`get sequence for ${deploymentName} ${band} ${seedValues} seedband: ${seedBand}`);
+
 		let deploymentObject = this.getLastDeploymentSequence({band: seedBand, name: deploymentName});
+
+		console.log('deploymentObject', JSON.stringify(deploymentObject, null, 4));
 
 		seedValues.sort(util.getSemverCmpFunction('version', {asc: false}));
 
