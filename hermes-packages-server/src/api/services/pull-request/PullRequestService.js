@@ -356,8 +356,6 @@ class PullRequestService {
 			changedSequences, isVersionChanged, configXml, packageJsonLocation, packageJson, sequences
 		} = await this.getVersionSequenceUpdatePayload();
 
-		process.exit();
-
 		// merge pull request
 		let eventData = {
 			sourceBranch: this.sourceBranch,

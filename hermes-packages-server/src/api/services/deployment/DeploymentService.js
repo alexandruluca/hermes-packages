@@ -741,12 +741,13 @@ class DeploymentService {
 		let isReleaseBand = band === DeploymentBand.RELEASE;
 		seedValues = Array.isArray(seedValues) ? seedValues : [seedValues];
 		let seedBand = isReleaseBand ? DeploymentBand.DEVELOP : band;
+		if (seedBand === DeploymentBand.QA) {
+			seedBand = DeploymentBand.DEVELOP;
+		}
 
 		console.log(`get sequence for ${deploymentName} ${band} ${seedValues} seedband: ${seedBand}`);
 
 		let deploymentObject = this.getLastDeploymentSequence({band: seedBand, name: deploymentName});
-
-		console.log('deploymentObject', JSON.stringify(deploymentObject, null, 4));
 
 		seedValues.sort(util.getSemverCmpFunction('version', {asc: false}));
 
@@ -769,8 +770,6 @@ class DeploymentService {
 
 			versionSequence[prop] = getSequence(versionSequence[prop], deploymentObject[prop], SEQUENCES[prop]);
 		}
-
-		console.log(JSON.stringify(versionSequence, null, 4));
 
 		return versionSequence;
 	}
