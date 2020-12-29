@@ -197,6 +197,12 @@ class DeploymentService {
 				}
 			}
 
+			if (!existingDeployment) {
+				return {
+					canCreate: true
+				};
+			}
+
 			// last version is always updatable
 			if (lastDevelopDeployment.version === existingDeployment.version) {
 				return {
