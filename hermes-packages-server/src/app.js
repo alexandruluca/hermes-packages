@@ -89,6 +89,7 @@ swaggerTools.initializeMiddleware(require('./api/api.json'), function (middlewar
 
 	app.get('/api/config', (req, res, next) => {
 		config.webClientConfig.apiUrl = 'test';
+		console.log(JSON.stringify(config.webClientConfig));
 		res.end(JSON.stringify(config.webClientConfig));
 	});
 
