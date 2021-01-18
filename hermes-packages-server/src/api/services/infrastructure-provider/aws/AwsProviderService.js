@@ -2,7 +2,7 @@ const {ServiceError, StatusCode} = require('../../../lib/error');
 const InfrastructureProviderService = require('../InfrastructureProviderService');
 const logger = require('../../../lib/logger');
 const {s3Service} = require('./S3Service');
-const {getGitTagNameByDeployment} = require('../../../util');
+const {getGitTagNameByDeployment, getStageIdentifier} = require('../../../util');
 const {storageProvider} = require('../../../providers/storageProvider');
 const {lambdaService} = require('./LambdaService');
 const {eventBusService} = require('../../event-bus/EventBusService');
@@ -150,9 +150,10 @@ class AwsProviderService extends InfrastructureProviderService {
 		logger.info('AWS::handleDeploymentInstall');
 
 		let gitTag = getGitTagNameByDeployment(deployment);
+		let stageIdentifier = getStageIdentifier(stage);
 		let deploymentReadStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
 
-		await notificationService.emitMessage({title: `Preparing to install ${gitTag} on ${stage}`});
+		await notificationService.emitMessage({title: `Preparing to install ${gitTag} on ${stageIdentifier}`});
 
 		let updateRegionalResources = stage.regions.map(async (region) => {
 			let message = `aws-${stage.resourceType}-update`;
@@ -168,7 +169,7 @@ class AwsProviderService extends InfrastructureProviderService {
 
 		await Promise.all(updateRegionalResources);
 
-		await notificationService.emitMessage({title: `${stage} was successfully updated to ${gitTag}`});
+		await notificationService.emitMessage({title: `${stageIdentifier} was successfully updated to ${gitTag}`});
 
 		this.updateDeploymentState({
 			projectId: project.id,
