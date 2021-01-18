@@ -8,7 +8,7 @@ const {lambdaService} = require('./LambdaService');
 const {eventBusService} = require('../../event-bus/EventBusService');
 const {s3DeploymentService} = require('./S3DeploymentService');
 const {lambdaDeploymentService} = require('./LambdaDeploymentService');
-
+const notificationService = require('../../notification-service');
 const LAMBDA_RUNTINME_LIST = ['nodejs'];
 const SUPPORTED_RESOURCE_LIST = ['lambda', 's3'];
 
@@ -152,6 +152,8 @@ class AwsProviderService extends InfrastructureProviderService {
 		let gitTag = getGitTagNameByDeployment(deployment);
 		let deploymentReadStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
 
+		await notificationService.emitMessage({title: `Preparing to install ${gitTag} on ${stage}`});
+
 		let updateRegionalResources = stage.regions.map(async (region) => {
 			let message = `aws-${stage.resourceType}-update`;
 			eventBusService.emitDeploymentStatusUpdate(message, {
@@ -165,6 +167,8 @@ class AwsProviderService extends InfrastructureProviderService {
 		});
 
 		await Promise.all(updateRegionalResources);
+
+		await notificationService.emitMessage({title: `${stage} was successfully updated to ${gitTag}`});
 
 		this.updateDeploymentState({
 			projectId: project.id,
