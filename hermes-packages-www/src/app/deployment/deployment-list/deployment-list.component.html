@@ -48,7 +48,7 @@
     </tr>
     <tr>
       <th *ngFor="let col of columns" [ngSwitch]="col.field">
-        <p-dropdown *ngSwitchCase="'name'" [options]="deploymentNameOptions" [style]="{'width':'100%'}"
+        <p-dropdown *ngSwitchCase="'name'" [options]="deploymentNameOptions" [(ngModel)]="selectedProject" [style]="{'width':'100%'}"
           (onChange)="loadDeploymentsWithFilter(col.field, $event.value)"></p-dropdown>
       </th>
       <th></th>

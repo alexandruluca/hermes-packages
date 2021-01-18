@@ -38,6 +38,7 @@ export class DeploymentListComponent implements OnInit {
   updateInProgress = false;
   updateInitialized = false;
   deploymentNameOptions: SelectItem[];
+  selectedProject: string;
   deploymentStatuses: SelectItem[];
   deploymentTypes: SelectItem[] = [
     {label: 'PULL REQUEST', value: DeploymentType.PULL_REQUEST},
@@ -90,10 +91,9 @@ export class DeploymentListComponent implements OnInit {
     this.deploymentNameOptions = deploymentContext.deploymentNames.reduce((options, deploymentName) => {
       options.push({label: deploymentName, value: deploymentName});
       return options;
-    }, [{
-      label: '',
-      value: undefined
-    }]);
+    }, []);
+
+    this.selectedProject = this.deploymentNameOptions[0] && this.deploymentNameOptions[0].value;
 
     this.deploymentService.onApplicationUpdated(({serverTag, deploymentName, version}) => {
       this.messageService.add({
