@@ -78,8 +78,9 @@ class S3DeploymentService {
 
 			let readStream = fs.createReadStream(fullPath);
 
-			let {promise} = await s3Service.uploadStream({bucket: destinationBucket, key: s3Key, readStream});
+			let {writeStream, promise} = await s3Service.uploadStream({bucket: destinationBucket, key: s3Key, readStream});
 
+			readStream.pipe(writeStream);
 			return promise;
 		});
 
