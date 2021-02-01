@@ -293,7 +293,7 @@ class GithubApi {
 
 		let url = `https://${accessToken}:@api.github.com/repos/${owner}/${repo}/releases/assets/${assetId}`;
 
-		return request({
+		let readStream = request({
 			url,
 			headers: {
 				'Accept': 'application/octet-stream',
@@ -301,6 +301,12 @@ class GithubApi {
 			},
 			encoding: null
 		});
+
+		let pass = require('stream').PassThrough();
+
+		readStream.pipe(pass);
+
+		return pass;
 	}
 
 	deleteRelease({repo, releaseId}) {
