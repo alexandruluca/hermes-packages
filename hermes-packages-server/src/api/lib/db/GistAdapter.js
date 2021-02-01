@@ -7,6 +7,9 @@ const branchApi = new BranchApi({
 });
 
 class GistAdapter {
+	constructor() {
+		console.log('init gist adapter');
+	}
 	async loadDatabase(dbname, callback) {
 		// using dbname, load the database from wherever your adapter expects it
 
@@ -16,15 +19,21 @@ class GistAdapter {
 
 		if (success) {
 			callback(JSON.stringify(content));
+			console.log('db was loaded');
 		} else {
-			callback(new Error("There was a problem loading the database"));
+			let message = "There was a problem loading the database";
+			console.log(message);
+			callback(new Error(message));
 		}
 	}
 
 	async saveDatabase(dbname, dbstring, callback) {
+		console.log('saving db');
 		dbstring = JSON.stringify(JSON.parse(dbstring), null, 4);
 
 		await branchApi.putContents({ref: 'develop', path: 'hermes-deployment-meta.json', content: dbstring});
+
+		console.log('db was saved');
 
 		var success = true;
 		if (success) {
