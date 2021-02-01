@@ -47,7 +47,7 @@ class LambdaDeploymentService {
 
 		eventBusService.emitDeploymentStatusUpdate(MessageKey.GetConfig, {isCompleted: true});
 
-		let {promise: uploadFinishedPromise} = await s3Service.uploadStream({key: s3DeploymentFileName, deploymentReadStream});
+		let {promise: uploadFinishedPromise} = await s3Service.uploadStream({key: s3DeploymentFileName, writeStream: deploymentReadStream});
 
 		await uploadFinishedPromise;
 
