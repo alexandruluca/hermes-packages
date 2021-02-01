@@ -49,14 +49,12 @@ class S3Service {
 	 * @param {String} opt.key
 	 * @param {WriteStream} opt.writeStream
 	 */
-	async uploadStream({bucket, key, writeStream}) {
+	async uploadStream({bucket, key}) {
 		bucket = bucket || S3_BUCKET;
 
 		const pass = new stream.PassThrough();
 
 		let ContentType = mime.lookup(key);
-
-		pass.pipe(writeStream);
 
 		return {
 			writeStream: pass,
