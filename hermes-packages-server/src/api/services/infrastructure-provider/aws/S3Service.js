@@ -47,18 +47,15 @@ class S3Service {
 	 * @param {Object} opt
 	 * @param {String=} opt.bucket
 	 * @param {String} opt.key
-	 * @param {WriteStream} opt.writeStream
+	 * @param {ReadStream} opt.readStream
 	 */
-	async uploadStream({bucket, key}) {
+	async uploadStream({bucket, key, readStream}) {
 		bucket = bucket || S3_BUCKET;
-
-		const pass = new stream.PassThrough();
 
 		let ContentType = mime.lookup(key);
 
 		return {
-			writeStream: pass,
-			promise: s3Instance.upload({Bucket: bucket, Key: key, Body: pass, ContentType}).promise()
+			promise: s3Instance.upload({Bucket: bucket, Key: key, Body: readStream, ContentType}).promise()
 		};
 	}
 
