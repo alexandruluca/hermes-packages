@@ -40,6 +40,7 @@ class LambdaDeploymentService {
 		try {
 			configuration = await this._getProjectConfig(stageIdentifier, deployment.name);
 		} catch (err) {
+			console.log(err);
 			eventBusService.emitDeploymentStatusUpdate(MessageKey.GetConfigFailure, {isCompleted: true});
 			eventBusService.emitDeploymentStatusUpdate(MessageKey.GetConfig, {isCompleted: true});
 			return;
