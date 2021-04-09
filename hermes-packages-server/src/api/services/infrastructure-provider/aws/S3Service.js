@@ -5,10 +5,6 @@ const awsConfig = config.awsDeployments;
 const stream = require('stream');
 const mime = require('mime-types');
 
-const S3_REGION = awsConfig.defaultRegion;
-
-const s3Instance = getS3Instance(S3_REGION);
-
 /**
  * @param {String} region
  * @returns Aws.S3
@@ -21,15 +17,24 @@ function getS3Instance(region) {
 		region: region
 	});
 }
+function getBucketName(bucketName, region) {
+	return `${bucketName}-${region}`;
+}
 
 const S3_BUCKET = awsConfig.bucket;
 const TTL = awsConfig.ttl || 60;
 
 class S3Service {
+	constructor({region, bucket}) {
+		bucket = bucket || getBucketName(S3_BUCKET, region);
+		this.s3Instance = getS3Instance(region);
+		this.bucketName = bucket;
+	}
+
 	async getUploadUrl(key, contentType) {
 		return new Promise((resolve, reject) => {
-			s3Instance.getSignedUrl('putObject', {
-				Bucket: S3_BUCKET,
+			this.s3Instance.getSignedUrl('putObject', {
+				Bucket: this.bucketName,
 				Key: key,
 				Expires: TTL,
 				ContentType: contentType
@@ -45,12 +50,9 @@ class S3Service {
 
 	/**
 	 * @param {Object} opt
-	 * @param {String=} opt.bucket
 	 * @param {String} opt.key
 	 */
-	async uploadStream({bucket, key, readStream}) {
-		bucket = bucket || S3_BUCKET;
-
+	async uploadStream({key, readStream}) {
 		const pass = new stream.PassThrough();
 
 		readStream.pipe(pass);
@@ -59,20 +61,16 @@ class S3Service {
 
 		return {
 			writeStream: pass,
-			promise: s3Instance.upload({Bucket: bucket, Key: key, Body: pass, ContentType}).promise()
+			promise: this.s3Instance.upload({Bucket: this.bucketName, Key: key, Body: pass, ContentType}).promise()
 		};
 	}
 
-	/**
-	 * @param {Object} opt
-	 * @param {String=} opt.bucket
-	 */
-	async emptyBucket({bucket}) {
-		let {Contents} = await s3Instance.listObjects({Bucket: bucket}).promise();
+	async emptyBucket() {
+		let {Contents} = await this.s3Instance.listObjects({Bucket: this.bucketName}).promise();
 
 		return Promise.all(Contents.map(async (entry) => {
-			return s3Instance.deleteObject({
-				Bucket: bucket,
+			return this.s3Instance.deleteObject({
+				Bucket: this.bucketName,
 				Key: entry.Key
 			}).promise();
 		}));
@@ -86,8 +84,8 @@ class S3Service {
 		}
 
 		return new Promise((resolve, reject) => {
-			s3Instance.getSignedUrl('getObject', {
-				Bucket: awsConfig.bucket,
+			this.s3Instance.getSignedUrl('getObject', {
+				Bucket: this.bucketName,
 				Key: key,
 				Expires: TTL
 			}, function (err, url) {
@@ -102,12 +100,12 @@ class S3Service {
 
 	async isExistingFile(key) {
 		const params = {
-			Bucket: awsConfig.bucket,
+			Bucket: this.bucketName,
 			Key: key
 		};
 
 		try {
-			await s3Instance.headObject(params).promise();
+			await this.s3Instance.headObject(params).promise();
 			return true;
 		} catch (err) {
 			if (err.statusCode !== 404) {
@@ -118,42 +116,46 @@ class S3Service {
 	}
 
 	/**
-	 * @param {String} bucketName
-	 * @param {String} region
 	 */
-	async isExistingBucket(bucketName, region) {
-		return getS3Instance(region).headBucket({Bucket: bucketName}).promise();
+	async isExistingBucket() {
+		return this.s3Instance.headBucket({Bucket: this.bucketName}).promise();
 	}
 }
 
-exports.s3Service = new S3Service();
+exports.S3Service = S3Service;
 
 (async () => {
 	try {
-		await ensureDeploymentBucket();
+		let ensureDeploymentBuckets = awsConfig.deploymentRegions.map(region => ensureDeploymentBucket(region));
+
+		await Promise.all(ensureDeploymentBuckets);
 	} catch (err) {
 		logger.error(err);
 		process.exit();
 	}
 })();
 
-async function ensureDeploymentBucket() {
+async function ensureDeploymentBucket(region) {
+	const s3Instance = getS3Instance(region);
+	const bucketName = getBucketName(S3_BUCKET, region);
+
 	try {
+		console.log(`try create bucket ${bucketName} in ${region}`);
 		await s3Instance.createBucket({
-			Bucket: S3_BUCKET,
+			Bucket: bucketName,
 			ACL: 'private'
 		}).promise();
-		logger.info(`Deployment bucket was created`);
+		logger.info(`Deployment bucket was created in region ${region}`);
 	} catch (err) {
 		if (err.statusCode == 409) {
-			logger.info('Bucket already exists');
+			logger.info(`Bucket ${bucketName} already exists in region ${region}`);
 			return;
 		}
 		throw err;
 	} finally {
-		logger.info('Blocking public access to deployment bucket');
+		logger.info(`Blocking public access to deployment bucket ${bucketName} in region ${region}`);
 		await s3Instance.putPublicAccessBlock({
-			Bucket: S3_BUCKET,
+			Bucket: bucketName,
 			PublicAccessBlockConfiguration: {
 				BlockPublicAcls: true,
 				RestrictPublicBuckets: true,

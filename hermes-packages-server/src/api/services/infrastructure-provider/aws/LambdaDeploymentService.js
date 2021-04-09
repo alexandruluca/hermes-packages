@@ -1,7 +1,7 @@
 const {DeploymentBand} = require("../../deployment/const");
 const {eventBusService} = require("../../event-bus/EventBusService");
 const {lambdaService} = require("./LambdaService");
-const {s3Service} = require("./S3Service");
+const {S3Service} = require("./S3Service");
 const config = require('../../../lib/config');
 const {BranchApi} = require("../../../lib/github");
 const {getStageIdentifier} = require("../../../util");
@@ -48,7 +48,7 @@ class LambdaDeploymentService {
 
 		eventBusService.emitDeploymentStatusUpdate(MessageKey.GetConfig, {isCompleted: true});
 
-		let {promise: uploadFinishedPromise} = await s3Service.uploadStream({key: s3DeploymentFileName, readStream: deploymentReadStream});
+		let {promise: uploadFinishedPromise} = await new S3Service({region}).uploadStream({key: s3DeploymentFileName, readStream: deploymentReadStream});
 
 		await uploadFinishedPromise;
 

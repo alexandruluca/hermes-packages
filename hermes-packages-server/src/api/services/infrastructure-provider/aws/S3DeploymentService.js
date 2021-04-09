@@ -4,7 +4,7 @@ const fs = require('fs');
 const extract = require('extract-zip');
 const logger = require('../../../lib/logger');
 const {resolve} = require('path');
-const {s3Service} = require('./S3Service');
+const {S3Service} = require('./S3Service');
 const {eventBusService} = require('../../event-bus/EventBusService');
 const {BranchApi} = require('../../../lib/github');
 const {DeploymentBand} = require('../../deployment/const');
@@ -61,7 +61,8 @@ class S3DeploymentService {
 
 		let files = await getFiles(extractLocation);
 
-		await s3Service.emptyBucket({bucket: destinationBucket});
+		const s3Service = new S3Service({region, bucket: destinationBucket});
+		await s3Service.emptyBucket();
 
 		let uploadFiles = files.map(async (file) => {
 			let fullPath = path.join(extractLocation, file);
@@ -78,7 +79,7 @@ class S3DeploymentService {
 
 			let readStream = fs.createReadStream(fullPath);
 
-			let {promise} = await s3Service.uploadStream({bucket: destinationBucket, key: s3Key, readStream});
+			let {promise} = await s3Service.uploadStream({key: s3Key, readStream});
 
 			return promise;
 		});

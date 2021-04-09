@@ -140,6 +140,13 @@
 				"defaultRegion": {
 					"type": "string"
 				},
+				"deploymentRegions": {
+					"type": "array",
+					"minItems": 0,
+					"items": {
+						"type": "string"
+					}
+				},
 				"ttl": {
 					"type": "integer"
 				}
@@ -148,7 +155,8 @@
 				"bucket",
 				"accessKeyId",
 				"secretAccessKey",
-				"defaultRegion"
+				"defaultRegion",
+				"deploymentRegions"
 			]
 		}
 	}

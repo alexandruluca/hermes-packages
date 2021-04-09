@@ -64,6 +64,10 @@ module.exports = class InfrastructureProviderService {
 			 */
 			let deployment = deploymentCollection.findOne({id: state.deploymentId});
 
+			if (!deployment) {
+				return null;
+			}
+
 			return {
 				version: deployment.version,
 				deploymentName: deployment.name,
@@ -78,7 +82,7 @@ module.exports = class InfrastructureProviderService {
 			return deploymentMeta;
 		}
 
-		return deploymentMeta.filter(d => d.band === band);
+		return deploymentMeta.filter(d => d && d.band === band);
 	}
 
 	/**

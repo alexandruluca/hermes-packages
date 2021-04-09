@@ -1,7 +1,7 @@
 const {ServiceError, StatusCode} = require('../../../lib/error');
 const InfrastructureProviderService = require('../InfrastructureProviderService');
 const logger = require('../../../lib/logger');
-const {s3Service} = require('./S3Service');
+const {S3Service} = require('./S3Service');
 const {getGitTagNameByDeployment, getStageIdentifier} = require('../../../util');
 const {storageProvider} = require('../../../providers/storageProvider');
 const {lambdaService} = require('./LambdaService');
@@ -128,7 +128,7 @@ class AwsProviderService extends InfrastructureProviderService {
 		let exists = false;
 
 		try {
-			exists = await s3Service.isExistingBucket(stage.resourceName, region);
+			exists = await new S3Service({region, bucket: stage.resourceName}).isExistingBucket();
 		} catch (err) {
 			exists = false;
 		}
