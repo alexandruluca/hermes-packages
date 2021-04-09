@@ -123,6 +123,7 @@ class S3Service {
 }
 
 exports.S3Service = S3Service;
+exports.getBucketName = getBucketName;
 
 (async () => {
 	try {

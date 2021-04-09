@@ -3,6 +3,7 @@ var AWS = require('aws-sdk');
 const logger = require('../../../lib/logger');
 const config = require('../../../lib/config');
 const {eventBusService} = require('../../event-bus/EventBusService');
+const {getBucketName} = require('./S3Service');
 const awsConfig = config.awsDeployments;
 
 const lambdaInstances = {};
@@ -74,7 +75,7 @@ class LambdaService {
 		return getLambdaInstance(region).updateFunctionCode({
 			FunctionName: functionName,
 			Publish: false,
-			S3Bucket: awsConfig.bucket,
+			S3Bucket: getBucketName(awsConfig.bucket, region),
 			S3Key: s3FileName
 		}).promise();
 	};
