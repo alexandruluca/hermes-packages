@@ -1262,6 +1262,9 @@ var DeploymentListComponent = /** @class */ (function () {
                             return options;
                         }, []);
                         this.selectedProject = this.deploymentNameOptions[0] && this.deploymentNameOptions[0].value;
+                        if (this.selectedProject) {
+                            this.loadDeploymentsWithFilter('name', this.selectedProject);
+                        }
                         this.deploymentService.onApplicationUpdated(function (_a) {
                             var serverTag = _a.serverTag, deploymentName = _a.deploymentName, version = _a.version;
                             _this.messageService.add({
@@ -1603,7 +1606,7 @@ module.exports = "\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div>\n  <div *ngFor=\"let event of deploymentEvents\">\n    {{'deploymentStatusUpdate.' + event.eventName | translate:event.data}}\n    <i class=\"pi\"\n      [ngClass]=\"{'pi-spin pi-spinner': event.action === 'start', 'pi-check': event.action === 'end', 'pi-times': event.action === 'failure'}\"></i>\n  </div>\n</div>\n"
+module.exports = "<div>\n  <div *ngFor=\"let event of deploymentEvents\">\n    {{'deploymentStatusUpdate.' + getEventName(event.eventName) | translate:event.data}} {{getRegion(event.eventName)}}\n    <i class=\"pi\"\n      [ngClass]=\"{'pi-spin pi-spinner': event.action === 'start', 'pi-check': event.action === 'end', 'pi-times': event.action === 'failure'}\"></i>\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -1634,6 +1637,7 @@ var DeploymentProgressIndicatorComponent = /** @class */ (function () {
         var _this = this;
         this.deploymentService.onDeploymentStatusUpdate((function (event) {
             var found = false;
+            console.log(event);
             for (var i = 0; i < _this.deploymentEvents.length; i++) {
                 var existingEvent = _this.deploymentEvents[i];
                 if (existingEvent.eventName === event.eventName) {
@@ -1649,6 +1653,16 @@ var DeploymentProgressIndicatorComponent = /** @class */ (function () {
     };
     DeploymentProgressIndicatorComponent.prototype.ngOnChanges = function () {
         this.deploymentEvents = [];
+    };
+    DeploymentProgressIndicatorComponent.prototype.getEventName = function (eventName) {
+        return eventName.replace(/-region-[a-z0-9-]+$/g, '');
+    };
+    DeploymentProgressIndicatorComponent.prototype.getRegion = function (eventName) {
+        var matches = eventName.match(/-region-([a-z0-9-]+)$/);
+        if (!matches) {
+            return '';
+        }
+        return "[Region: " + matches[1] + "]";
     };
     Object.defineProperty(DeploymentProgressIndicatorComponent.prototype, "deployment", {
         get: function () {

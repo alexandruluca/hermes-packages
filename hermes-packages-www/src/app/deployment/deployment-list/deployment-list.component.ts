@@ -95,6 +95,10 @@ export class DeploymentListComponent implements OnInit {
 
     this.selectedProject = this.deploymentNameOptions[0] && this.deploymentNameOptions[0].value;
 
+    if (this.selectedProject) {
+      this.loadDeploymentsWithFilter('name', this.selectedProject);
+    }
+
     this.deploymentService.onApplicationUpdated(({serverTag, deploymentName, version}) => {
       this.messageService.add({
         severity: 'info',

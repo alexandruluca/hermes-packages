@@ -24,6 +24,8 @@ export class DeploymentProgressIndicatorComponent implements OnInit, OnChanges {
     this.deploymentService.onDeploymentStatusUpdate((event => {
       let found = false;
 
+      console.log(event);
+
       for (let i = 0; i < this.deploymentEvents.length; i++) {
         let existingEvent = this.deploymentEvents[i];
 
@@ -43,6 +45,19 @@ export class DeploymentProgressIndicatorComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.deploymentEvents = [];
+  }
+
+  getEventName(eventName: string) {
+    return eventName.replace(/-region-[a-z0-9-]+$/g, '');
+  }
+
+  getRegion(eventName: string) {
+    let matches = eventName.match(/-region-([a-z0-9-]+)$/);
+
+    if(!matches) {
+      return '';
+    }
+    return `[Region: ${matches[1]}]`;
   }
 
   @Input()
