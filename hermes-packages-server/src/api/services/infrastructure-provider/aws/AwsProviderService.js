@@ -151,22 +151,23 @@ class AwsProviderService extends InfrastructureProviderService {
 
 		let gitTag = getGitTagNameByDeployment(deployment);
 		let stageIdentifier = getStageIdentifier(stage);
-		let deploymentReadStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
-
-		deploymentReadStream.on('error', (err) => {
-			console.log('err', err);
-		});
 
 		await notificationService.emitMessage({title: `Preparing to install ${gitTag} on ${stageIdentifier}`});
 
 		let updateRegionalResources = stage.regions.map(async (region) => {
-			let message = `aws-${stage.resourceType}-update`;
+			let message = `aws-${stage.resourceType}-update-region-${region}`;
 			eventBusService.emitDeploymentStatusUpdate(message, {
 				data: {
 					resourceName: stage.resourceName + '-' + region,
 					gitTag
 				}
 			});
+			let deploymentReadStream = await storageProvider.getDeploymentStreamByTag(deployment.name, gitTag);
+
+			deploymentReadStream.on('error', (err) => {
+				console.log('err', err);
+			});
+
 			await this._handleResourceUpdate({stage, deployment, deploymentReadStream, region});
 			eventBusService.emitDeploymentStatusUpdate(message, {isCompleted: true});
 		});

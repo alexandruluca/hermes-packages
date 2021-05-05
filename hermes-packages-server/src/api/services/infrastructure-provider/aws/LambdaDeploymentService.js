@@ -16,7 +16,7 @@ const branchApi = new BranchApi({
 const MessageKey = {
 	GetConfig: 'getting_project_config',
 	GetConfigFailure: 'failed_getting_project_config',
-	UploadS3Package: 'github-release-package-stream'
+	UploadS3Package: region => `github-release-package-stream-region-${region}`
 };
 
 class LambdaDeploymentService {
@@ -31,7 +31,7 @@ class LambdaDeploymentService {
 		let s3DeploymentFileName = `${deployment.name}/${stage.name}.zip`;
 		let stageIdentifier = getStageIdentifier(stage);
 
-		eventBusService.emitDeploymentStatusUpdate(MessageKey.UploadS3Package);
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.UploadS3Package(region));
 
 		eventBusService.emitDeploymentStatusUpdate(MessageKey.GetConfig);
 
@@ -52,7 +52,7 @@ class LambdaDeploymentService {
 
 		await uploadFinishedPromise;
 
-		eventBusService.emitDeploymentStatusUpdate(MessageKey.UploadS3Package, {isCompleted: true});
+		eventBusService.emitDeploymentStatusUpdate(MessageKey.UploadS3Package(region), {isCompleted: true});
 
 		await lambdaService.deployLambdaFunction({
 			functionName: stage.resourceName,
