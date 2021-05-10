@@ -22,7 +22,7 @@
     "express-handlebars": "^3.0.0",
     "express-session": "^1.17.0",
     "extract-zip": "^2.0.1",
-    "lodash": "4.17.19",
+    "lodash": "4.17.21",
     "log4js": "4.2.0",
     "lokijs": "^1.5.8",
     "mime-types": "^2.1.27",
