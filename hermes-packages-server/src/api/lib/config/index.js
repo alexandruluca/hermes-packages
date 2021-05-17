@@ -1,6 +1,6 @@
 const shush = require('shush');
 const path = require('path');
-const dataDir = process.env.dataDir || process.cwd();
+const dataDir = process.env.dataDir || process.env.DATA_DIR || process.cwd();
 const configPath = path.join(dataDir, 'config.json');
 
 const config = shush(configPath);

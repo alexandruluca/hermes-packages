@@ -10,6 +10,10 @@
 			},
 			"env-debug": {
 				"DEBUG": "debug:deployment-page"
+			},
+			"env-production": {
+				"NODE_ENV": "PRODUCTION",
+				"DATA_DIR": "/opt/deployments/hermes-packages"
 			}
 		}
 	]

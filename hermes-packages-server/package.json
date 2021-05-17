@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "pm2 start ecosystem.json",
+	"start-prod": "pm2 start ecosystem.json --env=production",
     "test": "NODE_ENV=test JASMINE_CONFIG_PATH=./test/jasmine.json jasmine"
   },
   "author": "",
