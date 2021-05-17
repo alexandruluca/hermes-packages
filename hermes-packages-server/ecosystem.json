@@ -8,10 +8,10 @@
 				"NODE_ENV": "DEVELOPMENT",
 				"DEBUG_COLORS": "true"
 			},
-			"env-debug": {
+			"env_debug": {
 				"DEBUG": "debug:deployment-page"
 			},
-			"production": {
+			"env_production": {
 				"NODE_ENV": "PRODUCTION",
 				"DATA_DIR": "/opt/deployments/hermes-packages"
 			}
