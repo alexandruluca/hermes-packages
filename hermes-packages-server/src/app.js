@@ -30,12 +30,15 @@ app.use(
 );
 
 const port = config.port;
+const wwwDir = path.join(__dirname, '../../hermes-packages-www/dist/hermes-packages-web');
 
 swaggerTools.initializeMiddleware(require('./api/api.json'), function (middleware) {
 	const routerOptions = {
 		swaggerUi: '/swagger.json',
 		controllers: path.join(__dirname, 'api/controllers')
 	};
+
+	app.use(express.static(wwwDir))
 
 	app.use(cookieParser());
 
