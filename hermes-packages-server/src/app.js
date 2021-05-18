@@ -40,7 +40,13 @@ swaggerTools.initializeMiddleware(require('./api/api.json'), function (middlewar
 	};
 
 	app.use(history({
-		verbose: true
+		verbose: true,
+		rewrites: [{
+			from: /^\/api\/?.*$/,
+			to: function (context) {
+				return context.parsedUrl.pathname;
+			}
+		}]
 	}));
 	app.use(express.static(wwwDir))
 
