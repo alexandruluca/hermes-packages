@@ -15,6 +15,7 @@ const viewsDir = path.join(__dirname, 'views');
 const logger = require('./api/lib/logger');
 const request = require('request-promise');
 const session = require("express-session");
+const history = require('connect-history-api-fallback');
 const {clientId, clientSecret, callback} = config.githubApi;
 const isDevelopment = process.env.NODE_ENV === 'DEVELOPMENT';
 
@@ -38,6 +39,9 @@ swaggerTools.initializeMiddleware(require('./api/api.json'), function (middlewar
 		controllers: path.join(__dirname, 'api/controllers')
 	};
 
+	app.use(history({
+		verbose: true
+	}));
 	app.use(express.static(wwwDir))
 
 	app.use(cookieParser());
