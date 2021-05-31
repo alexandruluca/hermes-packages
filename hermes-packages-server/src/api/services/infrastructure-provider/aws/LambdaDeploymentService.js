@@ -29,7 +29,6 @@ class LambdaDeploymentService {
 	 */
 	async handleDeploymentUpdate({stage, deploymentReadStream, deployment, region}) {
 		let s3DeploymentFileName = `${deployment.name}/${stage.name}.zip`;
-		let stageIdentifier = getStageIdentifier(stage);
 
 		eventBusService.emitDeploymentStatusUpdate(MessageKey.UploadS3Package(region));
 
@@ -38,7 +37,7 @@ class LambdaDeploymentService {
 		let configuration;
 
 		try {
-			configuration = await this._getProjectConfig(stageIdentifier, deployment.name);
+			configuration = await this._getProjectConfig(deployment.name, stage.band);
 		} catch (err) {
 			console.log(err);
 			eventBusService.emitDeploymentStatusUpdate(MessageKey.GetConfigFailure, {isCompleted: true});
@@ -66,11 +65,11 @@ class LambdaDeploymentService {
 	}
 
 	/**
-	 * @param {String} serverTag
 	 * @param {String} projectName
+	 * @param {String} band
 	 */
-	async _getProjectConfig(serverTag, projectName) {
-		let result = await branchApi.getContents({ref: 'develop', path: `${serverTag}/${projectName}/config.json`});
+	async _getProjectConfig(projectName, band) {
+		let result = await branchApi.getContents({ref: 'develop', path: `${projectName}/${band}/config.json`});
 		return result.content;
 	}
 }
