@@ -164,9 +164,9 @@ class LambdaService {
 
 		let lambdaInstance = getLambdaInstance(region);
 
-		let {Environment} = await lambdaInstance.getFunctionConfiguration({FunctionName: functionName}).promise();
+		let {Environment: {Variables}} = await lambdaInstance.getFunctionConfiguration({FunctionName: functionName}).promise();
 
-		Environment = Environment || {};
+		Variables = Variables || {};
 
 		let updateNeeded = false;
 
@@ -174,7 +174,7 @@ class LambdaService {
 			configuration[prop] += '';
 			let stringVal = configuration[prop];
 
-			if (Environment[prop] !== stringVal) {
+			if (Variables[prop] !== stringVal) {
 				updateNeeded = true;
 			}
 		}
