@@ -93,10 +93,12 @@ export class DeploymentListComponent implements OnInit {
       return options;
     }, []);
 
-    this.selectedProject = this.deploymentNameOptions[0] && this.deploymentNameOptions[0].value;
+    if (this.deploymentType === DeploymentType.PULL_REQUEST) {
+      this.selectedProject = this.deploymentNameOptions[0] && this.deploymentNameOptions[0].value;
 
-    if (this.selectedProject) {
-      this.loadDeploymentsWithFilter('name', this.selectedProject);
+      if (this.selectedProject) {
+        this.loadDeploymentsWithFilter('name', this.selectedProject);
+      }
     }
 
     this.deploymentService.onApplicationUpdated(({serverTag, deploymentName, version}) => {
@@ -115,6 +117,13 @@ export class DeploymentListComponent implements OnInit {
       sortField,
       sortOrder
     });
+
+    let queryObj = this.paginationOptions.query || {};
+
+    if (!queryObj.hasOwnProperty('name') && this.deploymentType === DeploymentType.PULL_REQUEST) {
+      console.info('no project name was qiven for query');
+      return;
+    }
 
     this.loadingDeployments = true;
 

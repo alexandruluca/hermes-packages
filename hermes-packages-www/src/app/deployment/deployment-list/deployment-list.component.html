@@ -48,8 +48,10 @@
     </tr>
     <tr>
       <th *ngFor="let col of columns" [ngSwitch]="col.field">
-        <p-dropdown *ngSwitchCase="'name'" [options]="deploymentNameOptions" [(ngModel)]="selectedProject" [style]="{'width':'100%'}"
+        <div *ngIf="deploymentType==='pull-request'">
+          <p-dropdown *ngSwitchCase="'name'" [options]="deploymentNameOptions" [(ngModel)]="selectedProject" [style]="{'width':'100%'}"
           (onChange)="loadDeploymentsWithFilter(col.field, $event.value)"></p-dropdown>
+        </div>
       </th>
       <th></th>
     </tr>
