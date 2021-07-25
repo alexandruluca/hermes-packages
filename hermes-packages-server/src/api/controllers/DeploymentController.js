@@ -105,10 +105,13 @@ module.exports = {
 
 	getDeployments: async function (req, res, next) {
 		try {
-			let options = req.swagger.params.options.value;
+			const options = req.swagger.params.options.value;
 
-			let page = deploymentService.getDeploymentsPage(options);
-			let deployments = page.items;
+			const page = deploymentService.getDeploymentsPage(options);
+			const deployments = page.items;
+
+			const pullRequestStatusMap = {}
+			const getDeploymentPRkey = (deployment) => `${deployment.name}_${deployment.pullRequestMeta.pullId}`;
 
 			let promises = deployments.map(async (deployment) => {
 				let {url} = await deploymentService.getDownloadUrl(deployment);
@@ -120,6 +123,18 @@ module.exports = {
 
 				deployment.jiraStatus = {id: 'To Do'};
 				deployment.transitionList = issueProvider.getTaskTransitionList();
+
+				let pullRequestMapKey = getDeploymentPRkey(deployment);
+
+				try {
+					let pr = await githubApi.getPullRequest({
+						repo: deployment.name,
+						pullId: deployment.pullRequestMeta.pullId
+					});
+					pullRequestStatusMap[pullRequestMapKey] = pr;
+				} catch (err) {
+					pullRequestStatusMap[pullRequestMapKey] = null;
+				}
 
 				if (config.disablePullRequestReview) {
 					return;
@@ -153,6 +168,25 @@ module.exports = {
 			});
 
 			await Promise.all(promises);
+
+			page.items = page.items.filter(deployment => {
+				if (!deployment.pullRequestMeta) {
+					return true;
+				}
+
+				let key = getDeploymentPRkey(deployment);
+				let pr = pullRequestStatusMap[key];
+
+				if (!pr) {
+					return false;
+				}
+				// don't get closed pull requests or merged ones
+				if (!pr || pr.state === 'closed' || pr.state === 'merged') {
+					return false;
+				}
+
+				return true;
+			});
 
 			res.sendData(page);
 		} catch (err) {
