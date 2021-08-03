@@ -32,7 +32,6 @@ export class ProjectListComponent implements OnInit {
   projectName: string;
   defaultStage: Stage = {
     type: 'aws',
-    name: null,
     band: 'qa',
     regions: ['eu-west-1'],
     resourceName: null,
@@ -115,10 +114,6 @@ export class ProjectListComponent implements OnInit {
   }
 
   isValidStage(stage: Stage) {
-    if (!stage.name) {
-      return false;
-    }
-
     if (stage.type === 'aws') {
       if (!stage.resourceName || !stage.resourceType) {
         return false;
@@ -143,14 +138,11 @@ export class ProjectListComponent implements OnInit {
   }
 
   removeStage(stage: Stage) {
-    this.projectStages = this.projectStages.filter(s => s.name !== stage.name);
+    this.projectStages = this.projectStages.filter(s => s.type !== stage.type);
   }
 
   getPropError(stage: Stage, prop: 'resourceName' | 'resourceType' | 'name'): string {
     if (prop === 'name') {
-      if (!stage.name) {
-        return `Missing ${prop}`;
-      }
       if (!this.isUniqueStageProp(stage, prop)) {
         return 'Should be unique';
       }

@@ -13,12 +13,9 @@ module.exports = Collection('project', {
 			"type": "array",
 			"items": {
 				"type": "object",
-				"required": ["id", "name", "type", "band"],
+				"required": ["id", "type", "band"],
 				"properties": {
 					"id": {
-						"type": "string"
-					},
-					"name": {
 						"type": "string"
 					},
 					"type": {
@@ -43,6 +40,12 @@ module.exports = Collection('project', {
 							"lambda",
 							"s3"
 						]
+					},
+					"cloudfrontDistributionId": {
+						"type": "string"
+					},
+					"cloudfrontInvalidationPattern": {
+						"type": "string"
 					},
 					"resourceName": {
 						"type": "string"

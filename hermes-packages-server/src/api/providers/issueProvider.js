@@ -114,7 +114,7 @@ class JiraIssueProvider extends IssueProvider {
 	}
 
 	getIssueLink(projectName, issueNumber) {
-		return jiraLinkTemplate.replace('{{issueId}}', issueNumber)
+		return jiraLinkTemplate.replace('{{issueId}}', issueNumber).replace('{{projectName}}', projectName);
 	}
 
 	/**

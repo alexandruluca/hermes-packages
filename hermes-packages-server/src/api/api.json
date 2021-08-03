@@ -54,14 +54,10 @@
 									"items": {
 										"type": "object",
 										"required": [
-											"name",
 											"type",
 											"band"
 										],
 										"properties": {
-											"name": {
-												"type": "string"
-											},
 											"type": {
 												"type": "string",
 												"enum": [

@@ -6,7 +6,6 @@ export enum DeploymentBand {
 }
 
 export interface Stage {
-  name: string,
   type: 'on-premise' | 'aws';
   band: 'qa' | 'production';
   regions: string[],

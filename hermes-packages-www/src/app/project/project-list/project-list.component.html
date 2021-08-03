@@ -85,7 +85,7 @@
 </p-table>
 
 <p-dialog header="New project" [(visible)]="displayDialog" [responsive]="true" showEffect="fade" [modal]="true"
-  [style]="{width: '60%'}">
+  [style]="{width: '70%'}">
   <div class="ui-g ui-fluid">
     <div class="ui-g-12">
       <div class="ui-g-4">
@@ -99,25 +99,19 @@
     </div>
     <div *ngFor="let stage of projectStages; let idx = index">
       <div class="ui-g-12">
-        <div class="ui-g-2">
-          <input type="text" pInputText ngClass="{'p-invalid': getPropError(stage, 'name')}" [(ngModel)]="stage.name"
-            placeholder="Name" />
-          <small class="p-invalid" *ngIf="getPropError(stage, 'name')">{{getPropError(stage, 'name')}}</small>
-        </div>
-
-        <div class="ui-g-2">
+        <div class="ui-g-3">
           <p-dropdown [options]="[{label: 'qa', value: 'qa'}, {label: 'production', value: 'production'}]"
             [style]="{'width':'100%'}" [(ngModel)]="stage.band">
           </p-dropdown>
         </div>
 
-        <div class="ui-g-2">
+        <div class="ui-g-3">
           <p-dropdown [options]="[{label: 'on-premise', value: 'on-premise'}, {label: 'aws', value: 'aws'}]"
             [style]="{'width':'100%'}" [(ngModel)]="stage.type">
           </p-dropdown>
         </div>
 
-        <div class="ui-g-2">
+        <div class="ui-g-3">
           <p-dropdown
             [options]="[{label: '', value: ''}, {label: 'lambda', value: 'lambda'}, {label: 's3', value: 's3'}]"
             [style]="{'width':'100%'}" [(ngModel)]="stage.resourceType">
@@ -130,6 +124,16 @@
             [(ngModel)]="stage.resourceName" placeholder="Resource name" />
           <small class="p-invalid"
             *ngIf="getPropError(stage, 'resourceName')">{{getPropError(stage, 'resourceName')}}</small>
+        </div>
+
+        <div class="ui-g-3" *ngIf="stage.resourceType === 's3'">
+          <input type="text" ngClass="{'p-invalid': getPropError(stage, 'cloudfrontDistributionId')}" pInputText
+            [(ngModel)]="stage.cloudfrontDistributionId" placeholder="Cloudfront distribution id" />
+        </div>
+
+        <div class="ui-g-3" *ngIf="stage.resourceType === 's3'">
+          <input type="text" ngClass="{'p-invalid': getPropError(stage, 'cloudfrontInvalidationPattern')}" pInputText
+            [(ngModel)]="stage.cloudfrontInvalidationPattern" placeholder="Invalidation pattern" />
         </div>
 
         <div class="ui-g-1 ui-g-05">
@@ -146,6 +150,7 @@
       </div>
 
       <div class="ui-g-6" style="width: auto;" *ngIf="stage.type === 'aws'">
+        <h3>Regions</h3>
         <p-chips *ngIf="stage.type === 'aws'" [(ngModel)]="stage.regions" placeholder="Regions"></p-chips>
       </div>
     </div>

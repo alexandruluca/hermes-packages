@@ -119,7 +119,9 @@ class DeploymentService {
 			return;
 		}
 
-		deployment.pullRequestMeta.jiraLink = config.jiraLinkTemplate.replace('{{issueId}}', deployment.pullRequestMeta.issueNumber);
+		deployment.pullRequestMeta.jiraLink = config.jiraLinkTemplate
+			.replace('{{projectName}}', deployment.name)
+			.replace('{{issueId}}', parseInt(deployment.pullRequestMeta.issueNumber));
 	}
 
 	deleteDeployments(deploymentId) {

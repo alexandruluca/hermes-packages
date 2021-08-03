@@ -37,14 +37,14 @@ export class ColumnFactory {
       SharedColumn.NAME,
       SharedColumn.VERSION,
       {
-        field: 'pullRequestMeta.jiraLink', header: 'Jira number', isEditable: false, renderer(row: Deployment) {
+        field: 'pullRequestMeta.jiraLink', header: 'Issue number', isEditable: false, renderer(row: Deployment) {
           if (!row.pullRequestMeta) {
             return '';
           }
           return `<a target="_blank" href="${row.pullRequestMeta.jiraLink}">${row.pullRequestMeta.issueNumber}</a>`;
         }
       },
-      {field: 'jiraStatus.name', header: 'Jira status', isEditable: true},
+      {field: 'jiraStatus.name', header: 'Issue status', isEditable: true},
       {field: 'pullRequestMeta.targetBranch', header: 'Target branch', isEditable: false, renderer(row: Deployment) {
          return `<div class="no-wrap">${row.pullRequestMeta.targetBranch} ← ${row.pullRequestMeta.sourceBranch}</div`;
       } },
