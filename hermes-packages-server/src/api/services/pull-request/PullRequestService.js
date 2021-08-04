@@ -266,14 +266,17 @@ class PullRequestService {
 		/**
 		* @type {Deployment} deploymentUpdate
 		*/
-		let deploymentUpdate = {
+		/* let deploymentUpdate = {
 			pullRequestMeta: {
 				status: isPullRequestBehind ? PullRequestStatus.BEHIND : PullRequestStatus.MERGED
 			}
-		};
+		}; */
+
+		// delete pull request deployments
+		deploymentService.deleteDeployments(deployment.id);
 
 		// update pull request status
-		deploymentService.updateDeploymentById(deployment.id, deploymentUpdate);
+		// deploymentService.updateDeploymentById(deployment.id, deploymentUpdate);
 
 		if (isPullRequestBehind) {
 			let targetBranch = deployment.pullRequestMeta.sourceBranch;
