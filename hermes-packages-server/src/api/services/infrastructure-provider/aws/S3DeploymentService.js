@@ -10,6 +10,7 @@ const {BranchApi} = require('../../../lib/github');
 const {DeploymentBand} = require('../../deployment/const');
 const {readdir} = require('fs').promises;
 const rimraf = require('util').promisify(require('rimraf'));
+const cloudFrontService = require('./CloudFrontService').getCloudFrontInstance();
 
 class S3DeploymentService {
 	/**
@@ -57,8 +58,6 @@ class S3DeploymentService {
 
 		await extract(outFileLocation, {dir: extractLocation});
 
-		eventBusService.emitDeploymentStatusUpdate('s3-github-package-extract', {isCompleted: true});
-
 		let files = await getFiles(extractLocation);
 
 		const s3Service = new S3Service({region, bucket: destinationBucket});
@@ -86,10 +85,43 @@ class S3DeploymentService {
 
 		await Promise.all(uploadFiles);
 
+		eventBusService.emitDeploymentStatusUpdate('s3-github-package-extract', {isCompleted: true});
+
 		await Promise.all([
 			rimraf(outFileLocation),
 			rimraf(extractLocation)
 		]);
+
+		await this.createCloudFrontInvalidation(stage);
+	}
+
+	/**
+	 * @param {Stage} stage
+	 */
+	async createCloudFrontInvalidation(stage) {
+		let {cloudfrontDistributionId, cloudfrontInvalidationPattern} = stage;
+
+		if (!cloudfrontDistributionId || !cloudfrontInvalidationPattern) {
+			return;
+		}
+
+		eventBusService.emitDeploymentStatusUpdate('cloudfront-invalidation', {data: {
+			cloudfrontDistributionId,
+			cloudfrontInvalidationPattern
+		}});
+
+		await cloudFrontService.createInvalidation({
+			DistributionId: cloudfrontDistributionId,
+			InvalidationBatch: {
+				CallerReference: new Date().getTime() + '',
+				Paths: {
+					Quantity: 1,
+					Items: [cloudfrontInvalidationPattern]
+				}
+			}
+		}).promise();
+
+		eventBusService.emitDeploymentStatusUpdate('cloudfront-invalidation', {isCompleted: true});
 	}
 }
 
