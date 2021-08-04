@@ -178,6 +178,8 @@ module.exports = {
 				let pr = pullRequestStatusMap[key];
 
 				if (!pr) {
+					// delete stale pull request deployments
+					deploymentService.deleteDeployments(deployment.id);
 					return false;
 				}
 				// don't get closed pull requests or merged ones
