@@ -184,6 +184,8 @@ module.exports = {
 				}
 				// don't get closed pull requests or merged ones
 				if (!pr || pr.state === 'closed' || pr.state === 'merged') {
+					// delete stale pull request deployments
+					deploymentService.deleteDeployments(deployment.id);
 					return false;
 				}
 
