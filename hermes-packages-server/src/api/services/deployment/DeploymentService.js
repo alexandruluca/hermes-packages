@@ -319,8 +319,7 @@ class DeploymentService {
 
 		let query = {
 			name: deploymentName,
-			band: DeploymentBand.RELEASE,
-			isProduction: {$ne: true}
+			band: DeploymentBand.RELEASE
 		};
 
 		let deployments = deploymentCollection.find(query);
