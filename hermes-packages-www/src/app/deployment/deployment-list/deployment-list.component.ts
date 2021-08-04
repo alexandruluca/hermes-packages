@@ -178,6 +178,10 @@ export class DeploymentListComponent implements OnInit {
     this.loadDeployments(this.paginationOptions as any);
   }
 
+  refreshPage() {
+    this.loadDeployments(this.paginationOptions as any);
+  }
+
   onRowEditInit(deployment: Deployment) {
     /*  this.messageService.add({severity: 'info', summary: 'on edit init', detail: 'on edit init'}); */
   }
@@ -197,6 +201,7 @@ export class DeploymentListComponent implements OnInit {
 
     this.deploymentService.updateDeployment(deployment.id, updatePayload).then(() => {
       this.messageService.add({severity: 'info', summary: 'was saved', detail: 'save'});
+      return this.refreshPage();
     }).catch(err => {
       this.messageService.add({severity: 'error', summary: err.message, detail: err.message});
     });

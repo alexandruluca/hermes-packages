@@ -1347,6 +1347,9 @@ var DeploymentListComponent = /** @class */ (function () {
         }
         this.loadDeployments(this.paginationOptions);
     };
+    DeploymentListComponent.prototype.refreshPage = function () {
+        this.loadDeployments(this.paginationOptions);
+    };
     DeploymentListComponent.prototype.onRowEditInit = function (deployment) {
         /*  this.messageService.add({severity: 'info', summary: 'on edit init', detail: 'on edit init'}); */
     };
@@ -1362,6 +1365,7 @@ var DeploymentListComponent = /** @class */ (function () {
         }
         this.deploymentService.updateDeployment(deployment.id, updatePayload).then(function () {
             _this.messageService.add({ severity: 'info', summary: 'was saved', detail: 'save' });
+            return _this.refreshPage();
         }).catch(function (err) {
             _this.messageService.add({ severity: 'error', summary: err.message, detail: err.message });
         });
