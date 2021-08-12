@@ -164,7 +164,9 @@ class LambdaService {
 
 		let lambdaInstance = getLambdaInstance(region);
 
-		let {Environment: {Variables}} = await lambdaInstance.getFunctionConfiguration({FunctionName: functionName}).promise();
+		let config = await lambdaInstance.getFunctionConfiguration({FunctionName: functionName}).promise();
+
+		let Variables = (config.Environment && config.Environment.Variables) || {};
 
 		Variables = Variables || {};
 
