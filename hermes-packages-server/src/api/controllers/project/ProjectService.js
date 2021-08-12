@@ -13,6 +13,7 @@ class ProjectService {
 		let existingProject = projectCollection.findOne({name: project.name});
 
 		project.stages.forEach(stage => {
+			stage.name = stage.name || project.name;
 			stage.id = uuid.v4();
 		});
 

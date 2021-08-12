@@ -93,12 +93,11 @@ export class ProjectListComponent implements OnInit {
   }
 
   async createProject() {
-    console.log(this.projectStages);
-
-    return this.projectService.createProject({
+    await this.projectService.createProject({
       name: this.projectName,
       stages: this.projectStages
     });
+    this.displayDialog = false;
   }
 
   canCreateProject() {

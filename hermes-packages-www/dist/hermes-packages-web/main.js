@@ -2310,11 +2310,16 @@ var ProjectListComponent = /** @class */ (function () {
     ProjectListComponent.prototype.createProject = function () {
         return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {
             return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
-                console.log(this.projectStages);
-                return [2 /*return*/, this.projectService.createProject({
-                        name: this.projectName,
-                        stages: this.projectStages
-                    })];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.projectService.createProject({
+                            name: this.projectName,
+                            stages: this.projectStages
+                        })];
+                    case 1:
+                        _a.sent();
+                        this.displayDialog = false;
+                        return [2 /*return*/];
+                }
             });
         });
     };
