@@ -89,22 +89,6 @@ class LambdaService {
 		return getLambdaInstance(region).publishVersion(params).promise().then(res => res.Version);
 	}
 
-	async publishVersionWithRetry(functionName, region, depth = 1) {
-		try {
-			return await this.publishLambdaVersion(functionName, region);
-		} catch (err) {
-			if (depth > 5) {
-				throw err;
-			}
-
-			let waitMs = 2 ** depth * 2500;
-			console.info(`${err.message}, will retry operation in: ${waitMs} ms`);
-			await wait(waitMs);
-
-			return this.publishVersionWithRetry(functionName, region, depth + 1);
-		}
-	}
-
 	/**
 	 * @param {Object} opt
 	 * @param {String} opt.functionName
@@ -121,9 +105,13 @@ class LambdaService {
 		await this.updateLambdaCode(functionName, region, s3FileName);
 		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaCodeUpdate(region), {isCompleted: true});
 
-		await this._updateFunctionConfiguration({functionName, configuration, region});
+		await invokeWithRetry('_updateFunctionConfiguration', () => {
+			return this._updateFunctionConfiguration({functionName, configuration, region});
+		});
 
-		let version = await this.publishVersionWithRetry(functionName, region);
+		let version = await invokeWithRetry('publishLambdaVersion', () => {
+			return this.publishLambdaVersion(functionName, region);
+		});
 
 		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaVersionPublish(region), {isCompleted: true, data: {version}});
 
@@ -242,3 +230,19 @@ class LambdaService {
 }
 
 exports.lambdaService = new LambdaService();
+
+async function invokeWithRetry(funcName, func, depth = 1) {
+	try {
+		return await func();
+	} catch (err) {
+		if (depth > 5) {
+			throw err;
+		}
+
+		let waitMs = 2 ** depth * 2500;
+		console.info(`Invoke ${funcName} failed with: ${err.message}, will retry operation in: ${waitMs} ms, depth: ${depth}`);
+		await wait(waitMs);
+
+		return invokeWithRetry(funcName, func, depth + 1);
+	}
+}
