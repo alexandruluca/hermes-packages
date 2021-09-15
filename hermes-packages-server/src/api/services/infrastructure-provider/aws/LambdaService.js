@@ -7,6 +7,7 @@ const {getBucketName} = require('./S3Service');
 const awsConfig = config.awsDeployments;
 
 const lambdaInstances = {};
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const MessageKey = {
 	LambdaCodeUpdate: region => `aws-lambda-updating-code-region-${region}`,
@@ -88,6 +89,22 @@ class LambdaService {
 		return getLambdaInstance(region).publishVersion(params).promise().then(res => res.Version);
 	}
 
+	async publishVersionWithRetry(functionName, region, depth = 1) {
+		try {
+			return await this.publishLambdaVersion(functionName, region);
+		} catch (err) {
+			if (depth > 5) {
+				throw err;
+			}
+
+			let waitMs = 2 ** depth * 2500;
+			console.info(`${err.message}, will retry operation in: ${waitMs} ms`);
+			await wait(waitMs);
+
+			return this.publishVersionWithRetry(functionName, region, depth + 1);
+		}
+	}
+
 	/**
 	 * @param {Object} opt
 	 * @param {String} opt.functionName
@@ -106,7 +123,7 @@ class LambdaService {
 
 		await this._updateFunctionConfiguration({functionName, configuration, region});
 
-		let version = await this.publishLambdaVersion(functionName, region);
+		let version = await this.publishVersionWithRetry(functionName, region);
 
 		eventBusService.emitDeploymentStatusUpdate(MessageKey.LambdaVersionPublish(region), {isCompleted: true, data: {version}});
 
