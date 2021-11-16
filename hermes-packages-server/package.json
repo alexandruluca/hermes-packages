@@ -13,7 +13,7 @@
   "dependencies": {
     "@octokit/rest": "^16.25.5",
     "ajv": "^5.5.2",
-    "aws-sdk": "^2.77.0",
+    "aws-sdk": "^2.814.0",
     "basic-auth": "^1.1.0",
     "bluebird": "^3.5.0",
     "connect-history-api-fallback": "^1.6.0",
