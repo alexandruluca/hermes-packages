@@ -25,7 +25,7 @@
     "express-session": "^1.17.0",
     "extract-zip": "^2.0.1",
     "lodash": "4.17.19",
-    "log4js": "4.2.0",
+    "log4js": "6.4.0",
     "lokijs": "^1.5.8",
     "mime-types": "^2.1.27",
     "request": "^2.88.0",
