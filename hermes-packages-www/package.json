@@ -28,7 +28,7 @@
     "primeng": "^7.1.2",
     "rxjs": "~6.3.3",
     "socket.io-client": "^2.2.0",
-    "swagger-client": "^3.8.25",
+    "swagger-client": "^3.18.5",
     "tslib": "^1.9.0",
     "zone.js": "~0.8.26"
   },
